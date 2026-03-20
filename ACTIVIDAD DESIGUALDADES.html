@@ -1,0 +1,1053 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mision: Desigualdades</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Exo+2:wght@400;500;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js" async>
+// ── Animación de rectas numéricas ────────────────────
+const datosRecta = {
+  1: {tipo:'der',  v1:5,  ab1:true},                          // (5,+∞)
+  2: {tipo:'izq',  v1:-5, ab1:false},                         // (-∞,-5]
+  3: {tipo:'izq',  v1:4,  ab1:false},                         // (-∞,4]
+  4: {tipo:'izq',  v1:10, ab1:true},                          // (-∞,10)
+  5: {tipo:'entre',v1:-2, ab1:true, v2:3, ab2:false},         // (-2,3]
+  6: {tipo:'izq',  v1:5,  ab1:true},                          // (-∞,5)
+};
+
+// Map a real value to SVG x coordinate
+// SVG viewBox 0 0 360 40, axis from x=10 to x=348
+// We use a fixed scale: each exercise defines its own range
+const rangos = {
+  1: {min:-2,  max:14},
+  2: {min:-12, max:2},
+  3: {min:-2,  max:10},
+  4: {min:0,   max:18},
+  5: {min:-6,  max:7},
+  6: {min:-2,  max:12},
+};
+
+function valToX(v, rango) {
+  const svgMin = 14, svgMax = 336;
+  return svgMin + (v - rango.min) / (rango.max - rango.min) * (svgMax - svgMin);
+}
+
+function animarRecta(n) {
+  const svg = document.getElementById('sv' + n);
+  if (!svg) return;
+  const d = datosRecta[n];
+  const r = rangos[n];
+
+  // Update axis tick labels
+  const ticks = svg.querySelectorAll('text');
+  const tickVals = ticksParaRango(r.min, r.max);
+  ticks.forEach((t, i) => {
+    if (tickVals[i] !== undefined) t.textContent = tickVals[i];
+  });
+
+  // Update tick x positions
+  const lines = svg.querySelectorAll('line:not([marker-end])');
+  lines.forEach((l, i) => {
+    if (tickVals[i] !== undefined) {
+      const x = valToX(tickVals[i], r);
+      l.setAttribute('x1', x); l.setAttribute('x2', x);
+      // also update corresponding text
+      if (ticks[i]) { ticks[i].setAttribute('x', x); }
+    }
+  });
+
+  const color = getComputedStyle(document.documentElement)
+    .getPropertyValue('--verde').trim() || '#2e7d32';
+
+  // Remove old animation elements
+  svg.querySelectorAll('.anim').forEach(el => el.remove());
+
+  const y = 20;
+
+  if (d.tipo === 'der') {
+    // (v1, +∞) or [v1, +∞)
+    const x1 = valToX(d.v1, r);
+    dibujarLinea(svg, x1, 338, y, color);
+    dibujarPunto(svg, x1, y, d.ab1, color);
+    dibujarEtiqueta(svg, x1, d.v1, color);
+  } else if (d.tipo === 'izq') {
+    // (-∞, v1) or (-∞, v1]
+    const x1 = valToX(d.v1, r);
+    dibujarLinea(svg, 14, x1, y, color);
+    dibujarPunto(svg, x1, y, d.ab1, color);
+    dibujarEtiqueta(svg, x1, d.v1, color);
+  } else if (d.tipo === 'entre') {
+    const x1 = valToX(d.v1, r);
+    const x2 = valToX(d.v2, r);
+    dibujarLinea(svg, x1, x2, y, color);
+    dibujarPunto(svg, x1, y, d.ab1, color);
+    dibujarPunto(svg, x2, y, d.ab2, color);
+    dibujarEtiqueta(svg, x1, d.v1, color);
+    dibujarEtiqueta(svg, x2, d.v2, color);
+  }
+}
+
+function dibujarLinea(svg, x1, x2, y, color) {
+  const line = document.createElementNS('http://www.w3.org/2000/svg','line');
+  line.setAttribute('x1', x1); line.setAttribute('y1', y);
+  line.setAttribute('x2', x2); line.setAttribute('y2', y);
+  line.setAttribute('stroke', color); line.setAttribute('stroke-width', '4');
+  line.setAttribute('stroke-linecap', 'round');
+  line.classList.add('anim');
+  // Animate stroke-dasharray
+  const len = Math.abs(x2 - x1);
+  line.setAttribute('stroke-dasharray', len);
+  line.setAttribute('stroke-dashoffset', len);
+  svg.appendChild(line);
+  requestAnimationFrame(() => {
+    line.style.transition = 'stroke-dashoffset 0.7s ease';
+    line.setAttribute('stroke-dashoffset', '0');
+  });
+}
+
+function dibujarPunto(svg, x, y, abierto, color) {
+  const c = document.createElementNS('http://www.w3.org/2000/svg','circle');
+  c.setAttribute('cx', x); c.setAttribute('cy', y); c.setAttribute('r', '6');
+  c.setAttribute('fill', abierto ? '#fff' : color);
+  c.setAttribute('stroke', color); c.setAttribute('stroke-width', '2.5');
+  c.classList.add('anim');
+  c.style.opacity = '0';
+  svg.appendChild(c);
+  setTimeout(() => {
+    c.style.transition = 'opacity 0.3s ease, r 0.3s ease';
+    c.style.opacity = '1';
+  }, 400);
+}
+
+function dibujarEtiqueta(svg, x, val, color) {
+  const txt = document.createElementNS('http://www.w3.org/2000/svg','text');
+  txt.setAttribute('x', x); txt.setAttribute('y', 12);
+  txt.setAttribute('text-anchor', 'middle');
+  txt.setAttribute('font-family', 'Exo 2, sans-serif');
+  txt.setAttribute('font-size', '11'); txt.setAttribute('font-weight', '700');
+  txt.setAttribute('fill', color);
+  txt.textContent = val;
+  txt.classList.add('anim');
+  txt.style.opacity = '0';
+  svg.appendChild(txt);
+  setTimeout(() => {
+    txt.style.transition = 'opacity 0.4s ease';
+    txt.style.opacity = '1';
+  }, 500);
+}
+
+function ticksParaRango(min, max) {
+  const span = max - min;
+  const step = span <= 10 ? 1 : span <= 20 ? 2 : 5;
+  const start = Math.ceil(min / step) * step;
+  const vals = [];
+  for (let v = start; v <= max && vals.length < 5; v += step) {
+    vals.push(v);
+  }
+  return vals;
+}
+
+</script>
+<style>
+:root {
+  --azul: #1565c0; --azulL: #e3f2fd; --azulM: #90caf9;
+  --verde: #2e7d32; --verdeL: #e8f5e9;
+  --rojo: #c62828; --rojoL: #ffebee;
+  --naranja: #e65100; --naranjaL: #fff3e0;
+  --amarillo: #f57f17;
+  --gris: #546e7a; --grisL: #eceff1; --grisM: #cfd8dc;
+  --texto: #1a237e; --textoG: #37474f;
+  --fd: 'Orbitron', monospace;
+  --fb: 'Exo 2', sans-serif;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: var(--fb); background: #eef2ff; color: var(--texto); min-height: 100vh; }
+.wrap { max-width: 860px; margin: 0 auto; padding: 20px 16px 100px; }
+
+/* HUD */
+.hud { background: var(--azul); border-radius: 14px; padding: 12px 20px;
+  display: flex; align-items: center; gap: 14px; margin-bottom: 12px;
+  box-shadow: 0 4px 16px rgba(21,101,192,.3); }
+.logo { font-family: var(--fd); font-size: 11px; font-weight: 900;
+  letter-spacing: 3px; color: #fff; white-space: nowrap; }
+.logo span { color: #90caf9; }
+.hsep { flex: 1; height: 1px; background: rgba(255,255,255,.2); }
+.hstat { display: flex; flex-direction: column; align-items: center; gap: 1px; }
+.hval { font-family: var(--fd); font-size: 17px; font-weight: 900; color: #fff; }
+.hlbl { font-size: 8px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: #90caf9; }
+.hdiv { width: 1px; height: 32px; background: rgba(255,255,255,.2); }
+
+/* Barra progreso */
+.prog { background: #fff; border: 1px solid var(--grisM); border-radius: 10px;
+  padding: 10px 18px; margin-bottom: 12px; box-shadow: 0 1px 6px rgba(0,0,0,.06); }
+.prog-top { display: flex; justify-content: space-between; margin-bottom: 6px; }
+.prog-top span { font-family: var(--fd); font-size: 9px; letter-spacing: 1.5px; color: var(--gris); }
+.prog-top span:last-child { color: var(--azul); font-weight: 700; }
+.prog-track { height: 7px; background: var(--azulL); border-radius: 4px; overflow: hidden; }
+.prog-fill { height: 100%; background: linear-gradient(90deg, var(--azul), #42a5f5);
+  border-radius: 4px; width: 0%; transition: width .8s ease; }
+
+/* Datos estudiante */
+.datos { background: #fff; border: 1px solid var(--grisM); border-radius: 12px;
+  padding: 12px 16px; margin-bottom: 12px; display: grid;
+  grid-template-columns: 2fr 1fr 1fr; gap: 10px;
+  box-shadow: 0 1px 6px rgba(0,0,0,.05); }
+.campo label { font-family: var(--fd); font-size: 8px; letter-spacing: 2px;
+  color: var(--gris); display: block; margin-bottom: 4px; }
+.campo input { width: 100%; background: var(--grisL); border: 1px solid var(--grisM);
+  border-radius: 7px; padding: 7px 10px; font-family: var(--fb); font-size: 13px;
+  color: var(--azul); outline: none; }
+.campo input:focus { border-color: var(--azul); background: var(--azulL); }
+
+/* Briefing */
+.brief { background: var(--naranjaL); border-left: 4px solid var(--naranja);
+  border-radius: 10px; padding: 12px 16px; margin-bottom: 12px; }
+.brief-tit { font-family: var(--fd); font-size: 9px; letter-spacing: 2px;
+  color: var(--naranja); margin-bottom: 6px; }
+.brief p { font-size: 13px; color: #4e342e; line-height: 1.7; }
+.brief strong { color: var(--naranja); }
+.brief .alerta { color: var(--rojo); font-weight: 700; }
+
+/* Regla de oro */
+.regla { background: var(--naranjaL); border: 1.5px solid #ffcc80;
+  border-radius: 12px; padding: 14px 18px; margin-bottom: 18px;
+  display: flex; gap: 12px; align-items: flex-start; flex-wrap: wrap; }
+.regla-ico { font-size: 26px; flex-shrink: 0; }
+.regla-tit { font-family: var(--fd); font-size: 9px; letter-spacing: 2px;
+  color: var(--naranja); font-weight: 700; margin-bottom: 6px; }
+.regla-txt { font-size: 13px; color: #4e342e; line-height: 1.6; }
+.regla-txt strong { color: var(--rojo); }
+.regla-ejs { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 8px; }
+.regla-ej { background: #fff8e1; border: 1px solid #ffe082; border-radius: 7px;
+  padding: 5px 11px; font-size: 13px; font-weight: 600; color: #4e342e; }
+
+/* Tarjetas ejercicio */
+.ej { background: #fff; border-radius: 14px; overflow: hidden; margin-bottom: 16px;
+  border: 1.5px solid var(--grisM); box-shadow: 0 2px 12px rgba(0,0,0,.08); }
+.ej.done { border-color: #66bb6a; box-shadow: 0 2px 12px rgba(102,187,106,.2); }
+
+.ej-hdr { padding: 12px 18px; display: flex; align-items: center; gap: 12px; }
+.e1 .ej-hdr { background: linear-gradient(135deg,#0d2b5e,#1565c0); }
+.e2 .ej-hdr { background: linear-gradient(135deg,#0a3d2e,#1b5e20); }
+.e3 .ej-hdr { background: linear-gradient(135deg,#4a1500,#e65100); }
+.e4 .ej-hdr { background: linear-gradient(135deg,#2a0a40,#6a1b9a); }
+.e5 .ej-hdr { background: linear-gradient(135deg,#4a0000,#c62828); }
+.e6 .ej-hdr { background: linear-gradient(135deg,#1a2530,#37474f); }
+
+.ej-num { width: 40px; height: 40px; border-radius: 10px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--fd); font-size: 19px; font-weight: 900; }
+.e1 .ej-num { background: rgba(30,136,229,.3); color: #90caf9; border: 1px solid rgba(144,202,249,.5); }
+.e2 .ej-num { background: rgba(46,125,50,.3); color: #a5d6a7; border: 1px solid rgba(165,214,167,.5); }
+.e3 .ej-num { background: rgba(230,81,0,.3); color: #ffcc80; border: 1px solid rgba(255,204,128,.5); }
+.e4 .ej-num { background: rgba(106,27,154,.3); color: #ce93d8; border: 1px solid rgba(206,147,216,.5); }
+.e5 .ej-num { background: rgba(198,40,40,.3); color: #ef9a9a; border: 1px solid rgba(239,154,154,.5); }
+.e6 .ej-num { background: rgba(55,71,79,.3); color: #b0bec5; border: 1px solid rgba(176,190,197,.5); }
+
+.ej-inf { flex: 1; }
+.ej-tit { font-family: var(--fd); font-size: 11px; font-weight: 700; color: #fff; margin-bottom: 2px; }
+.ej-sub { font-size: 11px; color: rgba(255,255,255,.55); font-style: italic; }
+.ej-badge { font-family: var(--fd); font-size: 9px; font-weight: 700;
+  padding: 3px 10px; border-radius: 20px; white-space: nowrap; }
+.e1 .ej-badge { background: rgba(30,136,229,.25); color: #90caf9; border: 1px solid rgba(144,202,249,.4); }
+.e2 .ej-badge { background: rgba(46,125,50,.25); color: #a5d6a7; border: 1px solid rgba(165,214,167,.4); }
+.e3 .ej-badge { background: rgba(230,81,0,.25); color: #ffcc80; border: 1px solid rgba(255,204,128,.4); }
+.e4 .ej-badge { background: rgba(106,27,154,.25); color: #ce93d8; border: 1px solid rgba(206,147,216,.4); }
+.e5 .ej-badge { background: rgba(198,40,40,.25); color: #ef9a9a; border: 1px solid rgba(239,154,154,.4); }
+.e6 .ej-badge { background: rgba(55,71,79,.25); color: #b0bec5; border: 1px solid rgba(176,190,197,.4); }
+.done-ico { font-size: 20px; opacity: 0; transition: opacity .4s, transform .4s; transform: scale(.4); }
+.done .done-ico { opacity: 1; transform: scale(1); }
+
+.ej-body { padding: 14px 18px 16px; background: #fafafa; }
+
+.enun { border-radius: 9px; padding: 10px 14px; margin-bottom: 12px;
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  position: relative; overflow: hidden; }
+.enun::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; }
+.e1 .enun { background: var(--azulL); } .e1 .enun::before { background: var(--azul); }
+.e2 .enun { background: var(--verdeL); } .e2 .enun::before { background: var(--verde); }
+.e3 .enun { background: var(--naranjaL); } .e3 .enun::before { background: var(--naranja); }
+.e4 .enun { background: #f3e5f5; } .e4 .enun::before { background: #6a1b9a; }
+.e5 .enun { background: var(--rojoL); } .e5 .enun::before { background: var(--rojo); }
+.e6 .enun { background: var(--grisL); } .e6 .enun::before { background: var(--gris); }
+.enun-tag { font-family: var(--fd); font-size: 8px; letter-spacing: 2px;
+  text-transform: uppercase; color: var(--gris); white-space: nowrap; }
+.enun-formula { font-size: 16px; font-weight: 600; color: var(--texto); }
+
+/* Pasos */
+.pasos { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 8px; margin-bottom: 12px; }
+.paso-row { display: flex; align-items: center; gap: 8px; }
+.paso-n { width: 26px; height: 26px; border-radius: 7px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--fd); font-size: 10px; font-weight: 700; }
+.e1 .paso-n { background: var(--azulL); color: var(--azul); }
+.e2 .paso-n { background: var(--verdeL); color: var(--verde); }
+.e3 .paso-n { background: var(--naranjaL); color: var(--naranja); }
+.e4 .paso-n { background: #f3e5f5; color: #6a1b9a; }
+.e5 .paso-n { background: var(--rojoL); color: var(--rojo); }
+.e6 .paso-n { background: var(--grisL); color: var(--gris); }
+
+/* Campos tapeables (divs) */
+.campo-tap {
+  flex: 1; background: #fff; border: 1.5px solid var(--grisM);
+  border-radius: 8px; padding: 8px 12px; font-family: var(--fb);
+  font-size: 13px; color: var(--textoG); cursor: pointer;
+  min-height: 38px; display: flex; align-items: center;
+  user-select: none; -webkit-user-select: none;
+  transition: border-color .2s, background .2s;
+  position: relative;
+}
+.campo-tap:active { background: var(--azulL); border-color: var(--azul); }
+.campo-tap .ph { color: #b0bec5; font-style: italic; pointer-events: none; }
+.campo-tap .val { color: var(--textoG); font-weight: 500; }
+
+.res-sec { background: var(--grisL); border-radius: 10px; padding: 11px 14px;
+  display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.res-lbl { font-family: var(--fd); font-size: 8px; letter-spacing: 2px;
+  color: var(--gris); white-space: nowrap; }
+.res-campo {
+  background: var(--azulL); border: 2px solid var(--azul);
+  border-radius: 8px; padding: 7px 12px; color: var(--azul);
+  font-family: var(--fb); font-size: 14px; font-weight: 700;
+  min-width: 120px; text-align: center; cursor: pointer;
+  min-height: 38px; display: flex; align-items: center; justify-content: center;
+  user-select: none; -webkit-user-select: none;
+  transition: border-color .2s;
+}
+.res-campo .ph { color: #90caf9; font-style: italic; font-weight: 400; font-size: 12px; }
+
+.recta-sec { flex: 1; min-width: 160px; }
+.recta-lbl { font-family: var(--fd); font-size: 8px; letter-spacing: 2px;
+  color: var(--gris); margin-bottom: 5px; }
+.recta-svg { width: 100%; height: 40px; display: block; }
+
+/* Botón verificar */
+.chk-btn { margin-top: 11px; width: 100%; padding: 11px;
+  background: var(--azul); border: none; border-radius: 9px; color: #fff;
+  font-family: var(--fd); font-size: 10px; font-weight: 700; letter-spacing: 2px;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  gap: 8px; box-shadow: 0 2px 8px rgba(21,101,192,.3); transition: all .2s; }
+.chk-btn:active { transform: scale(.98); }
+.chk-btn.ok { background: var(--verde); box-shadow: 0 2px 8px rgba(46,125,50,.3); cursor: default; }
+
+/* Feedback */
+.fb { margin-top: 8px; padding: 9px 13px; border-radius: 8px; font-size: 13px;
+  font-weight: 600; display: none; align-items: center; gap: 8px; }
+.fb.show { display: flex; animation: pop .3s cubic-bezier(.34,1.56,.64,1); }
+@keyframes pop { from { transform: scale(.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+.fb.c { background: var(--verdeL); border: 1px solid #a5d6a7; color: #1b5e20; }
+.fb.w { background: var(--rojoL); border: 1px solid #ef9a9a; color: #b71c1c; }
+
+/* Score final */
+.score { background: var(--azul); border-radius: 14px; padding: 22px 24px;
+  display: none; margin-bottom: 20px; box-shadow: 0 6px 24px rgba(21,101,192,.4); }
+.score.show { display: block; animation: pop .5s cubic-bezier(.34,1.56,.64,1); }
+.score-tit { font-family: var(--fd); font-size: 13px; text-align: center;
+  color: #fff; letter-spacing: 3px; margin-bottom: 16px; }
+.score-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; }
+.score-item { text-align: center; background: rgba(255,255,255,.15);
+  border-radius: 10px; padding: 12px; }
+.score-val { font-family: var(--fd); font-size: 28px; font-weight: 900; color: #ffd600; }
+.score-lbl { font-size: 9px; color: #90caf9; letter-spacing: 1px; margin-top: 3px; }
+
+/* Botón imprimir */
+.print-btn { position: fixed; bottom: 20px; right: 20px;
+  background: var(--azul); color: #fff; border: none; border-radius: 50px;
+  padding: 12px 20px; font-family: var(--fd); font-size: 9px; font-weight: 700;
+  letter-spacing: 1px; cursor: pointer; box-shadow: 0 4px 16px rgba(21,101,192,.4);
+  display: flex; align-items: center; gap: 7px; z-index: 100;
+  transition: transform .2s, box-shadow .2s; }
+.print-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(21,101,192,.5); }
+
+/* ── TECLADO MATEMATICO ── */
+.kb-overlay { display: none; position: fixed; inset: 0; z-index: 299;
+  background: rgba(0,0,0,.3); }
+.kb-overlay.show { display: block; }
+.kb { display: none; position: fixed; bottom: 0; left: 0; right: 0; z-index: 300;
+  background: #fff; border-top: 3px solid var(--azul);
+  padding: 14px 14px 28px; box-shadow: 0 -6px 24px rgba(0,0,0,.15);
+  animation: kbup .22s cubic-bezier(.16,1,.3,1); }
+.kb.show { display: block; }
+@keyframes kbup { from { transform: translateY(100%); } to { transform: translateY(0); } }
+
+.kb-preview { display: flex; align-items: center; gap: 10px;
+  background: var(--azulL); border: 2px solid var(--azul); border-radius: 10px;
+  padding: 8px 14px; margin-bottom: 10px; }
+.kb-preview-val { flex: 1; font-family: var(--fb); font-size: 16px; font-weight: 700;
+  color: var(--azul); min-height: 24px; }
+.kb-preview-val.empty::before { content: attr(data-ph); color: #90caf9;
+  font-style: italic; font-weight: 400; font-size: 13px; }
+.kb-borrar { background: var(--rojoL); border: 1px solid #ef9a9a; border-radius: 7px;
+  padding: 6px 12px; color: var(--rojo); font-family: var(--fd); font-size: 9px;
+  font-weight: 700; cursor: pointer; }
+
+.kb-modos { display: flex; gap: 6px; margin-bottom: 10px; }
+.kb-modo { flex: 1; padding: 8px; border-radius: 8px; font-family: var(--fd);
+  font-size: 9px; font-weight: 700; letter-spacing: 1px; cursor: pointer;
+  border: 2px solid var(--grisM); background: var(--grisL); color: var(--gris);
+  transition: all .15s; }
+.kb-modo.activo { border-color: var(--azul); background: var(--azul); color: #fff; }
+
+.kb-panel { display: none; }
+.kb-panel.activo { display: block; }
+
+.kb-fila { display: flex; gap: 6px; margin-bottom: 6px; }
+.kb-btn {
+  flex: 1; padding: 14px 4px; background: var(--grisL);
+  border: 1px solid var(--grisM); border-radius: 10px;
+  font-family: var(--fb); font-size: 16px; font-weight: 700;
+  color: var(--textoG); cursor: pointer; text-align: center;
+  -webkit-tap-highlight-color: transparent; user-select: none;
+  transition: background .1s, transform .1s;
+}
+.kb-btn:active { background: var(--azulM); transform: scale(.93); }
+.kb-btn.esp { background: var(--azulL); color: var(--azul);
+  border-color: var(--azulM); font-size: 18px; }
+.kb-btn.esp:active { background: var(--azulM); }
+.kb-btn.ok { background: var(--verde); color: #fff; border-color: var(--verde);
+  font-size: 13px; letter-spacing: 1px; }
+.kb-btn.ok:active { background: #1b5e20; }
+.kb-btn.del { background: var(--naranjaL); color: var(--naranja); border-color: #ffcc80; }
+.kb-btn.del:active { background: #ffe0b2; }
+.kb-btn.ancho2 { flex: 2; }
+
+/* Responsive móvil */
+@media(max-width:600px) {
+  .wrap { padding: 12px 10px 100px; }
+  .hud { padding: 10px 12px; gap: 10px; }
+  .logo { font-size: 9px; letter-spacing: 1.5px; }
+  .hval { font-size: 15px; }
+  .datos { grid-template-columns: 1fr; }
+  .ej-hdr { padding: 10px 14px; gap: 10px; }
+  .ej-num { width: 36px; height: 36px; font-size: 17px; }
+  .ej-tit { font-size: 10px; }
+  .ej-badge { display: none; }
+  .ej-body { padding: 12px 14px 14px; }
+  .pasos { grid-template-columns: 1fr; }
+  .res-sec { flex-direction: column; gap: 8px; }
+  .res-campo { width: 100%; justify-content: center; }
+  .recta-sec { width: 100%; min-width: 0; }
+  .kb-btn { padding: 15px 2px; font-size: 17px; }
+  .kb-btn.ok { font-size: 12px; }
+}
+@media print {
+  .print-btn, .chk-btn, .kb, .kb-overlay { display: none !important; }
+  .ej { box-shadow: none !important; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- HUD -->
+  <div class="hud">
+    <div class="logo">MISIÓN<span>:</span> DESIGUALDADES</div>
+    <div class="hsep"></div>
+    <div class="hstat"><div class="hval" id="hej">0/6</div><div class="hlbl">EJERCICIOS</div></div>
+    <div class="hdiv"></div>
+    <div class="hstat"><div class="hval" id="hpt">0</div><div class="hlbl">PUNTOS</div></div>
+    <div class="hdiv"></div>
+    <div class="hstat"><div class="hval" id="htm">00:00</div><div class="hlbl">TIEMPO</div></div>
+  </div>
+
+  <!-- Progreso -->
+  <div class="prog">
+    <div class="prog-top">
+      <span>PROGRESO DE MISIÓN</span>
+      <span id="hpct">0%</span>
+    </div>
+    <div class="prog-track"><div class="prog-fill" id="pfill"></div></div>
+  </div>
+
+  <!-- Datos -->
+  <div class="datos">
+    <div class="campo"><label>// NOMBRE COMPLETO</label><input type="text" placeholder="Escribe tu nombre…"></div>
+    <div class="campo"><label>// CURSO</label><input type="text" placeholder="…"></div>
+    <div class="campo"><label>// FECHA</label><input type="date"></div>
+  </div>
+
+  <!-- Briefing -->
+  <div class="brief">
+    <div class="brief-tit">// BRIEFING DE MISIÓN //</div>
+    <p>Tu misión: <strong>resolver 6 desigualdades</strong> de primer grado. Muestra <strong>todos los pasos</strong> y escribe la solución en notación de intervalo. Toca cualquier campo para abrir el teclado matemático.<br>
+    Recuerda: al operar con un número <span class="alerta">negativo</span>, el signo de la desigualdad se <span class="alerta">invierte</span>.</p>
+  </div>
+
+  <!-- Regla de oro -->
+  <div class="regla">
+    <div class="regla-ico">⚡</div>
+    <div>
+      <div class="regla-tit">REGLA DE ORO — NUNCA OLVIDAR</div>
+      <div class="regla-txt">Al multiplicar o dividir por un número <strong>negativo</strong>, el signo <strong>se invierte</strong>:</div>
+      <div class="regla-ejs">
+        <div class="regla-ej">\( -x > 3 \;\Longrightarrow\; x < -3 \)</div>
+        <div class="regla-ej">\( -3x \leq 9 \;\Longrightarrow\; x \geq -3 \)</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== EJERCICIOS ===== -->
+
+  <!-- EJ 1 -->
+  <div class="ej e1" id="ej1">
+    <div class="ej-hdr">
+      <div class="ej-num">1</div>
+      <div class="ej-inf">
+        <div class="ej-tit">EJERCICIO 01 — Caso directo</div>
+        <div class="ej-sub">Despeje simple · sin inversión de signo</div>
+      </div>
+      <div class="ej-badge">⭐ BÁSICO</div>
+      <div class="done-ico">✅</div>
+    </div>
+    <div class="ej-body">
+      <div class="enun"><span class="enun-tag">RESOLVER:</span><span class="enun-formula">\( 3x - 4 > 11 \)</span></div>
+      <div class="pasos">
+        <div class="paso-row"><div class="paso-n">P1</div><div class="campo-tap" onclick="abrirTeclado(this,'dev')"><span class="ph">Sumar 4 a ambos miembros…</span></div></div>
+        <div class="paso-row"><div class="paso-n">P2</div><div class="campo-tap" onclick="abrirTeclado(this,'dev')"><span class="ph">Dividir entre 3…</span></div></div>
+        <div class="paso-row"><div class="paso-n">P3</div><div class="campo-tap" onclick="abrirTeclado(this,'dev')"><span class="ph">Resultado final…</span></div></div>
+      </div>
+      <div class="res-sec">
+        <span class="res-lbl">SOLUCIÓN: \( x \in \)</span>
+        <div class="res-campo" id="r1" onclick="abrirTeclado(this,'sol')"><span class="ph">Toca aquí…</span></div>
+        <div class="recta-sec">
+          <div class="recta-lbl">// RECTA NUMÉRICA</div>
+          <svg class="recta-svg" id="sv1" viewBox="0 0 360 40"><defs><marker id="a1" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#90a4ae"/></marker></defs><line x1="10" y1="20" x2="348" y2="20" stroke="#90a4ae" stroke-width="1.5" marker-end="url(#a1)"/><g font-family="Exo 2" font-size="10" fill="#90a4ae" text-anchor="middle"><line x1="60" y1="16" x2="60" y2="24" stroke="#90a4ae"/><text x="60" y="35">…</text><line x1="120" y1="16" x2="120" y2="24" stroke="#90a4ae"/><text x="120" y="35">…</text><line x1="180" y1="16" x2="180" y2="24" stroke="#90a4ae"/><text x="180" y="35">…</text><line x1="240" y1="16" x2="240" y2="24" stroke="#90a4ae"/><text x="240" y="35">…</text><line x1="300" y1="16" x2="300" y2="24" stroke="#90a4ae"/><text x="300" y="35">…</text></g></svg>
+        </div>
+      </div>
+      <button class="chk-btn" onclick="verificar(1,'(5,+inf)')">▶ VERIFICAR RESPUESTA</button>
+      <div class="fb" id="fb1"></div>
+    </div>
+  </div>
+
+  <!-- EJ 2 -->
+  <div class="ej e2" id="ej2">
+    <div class="ej-hdr">
+      <div class="ej-num">2</div>
+      <div class="ej-inf">
+        <div class="ej-tit">EJERCICIO 02 — Términos en ambos miembros</div>
+        <div class="ej-sub">Agrupar x a un lado · constantes al otro</div>
+      </div>
+      <div class="ej-badge">⭐⭐ MEDIO</div>
+      <div class="done-ico">✅</div>
+    </div>
+    <div class="ej-body">
+      <div class="enun"><span class="enun-tag">RESOLVER:</span><span class="enun-formula">\( 5x + 2 \leq 3x - 8 \)</span></div>
+      <div class="pasos">
+        <div class="paso-row"><div class="paso-n">P1</div><div class="campo-tap" onclick="abrirTeclado(this,'dev')"><span class="ph">Pasar 3x a la izquierda…</span></div></div>
+        <div class="paso-row"><div class="paso-n">P2</div><div class="campo-tap" onclick="abrirTeclado(this,'dev')"><span class="ph">Simplificar…</span></div></div>
+        <div class="paso-row"><div class="paso-n">P3</div><div class="campo-tap" onclick="abrirTeclado(this,'dev')"><span class="ph">Despejar x…</span></div></div>
+      </div>
+      <div class="res-sec">
+        <span class="res-lbl">SOLUCIÓN: \( x \in \)</span>
+        <div class="res-campo" id="r2" onclick="abrirTeclado(this,'sol')"><span class="ph">Toca aquí…</span></div>
+        <div class="recta-sec"><div class="recta-lbl">// RECTA NUMÉRICA</div><svg class="recta-svg" id="sv2" viewBox="0 0 360 40"><defs><marker id="a2" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#90a4ae"/></marker></defs><line x1="10" y1="20" x2="348" y2="20" stroke="#90a4ae" stroke-width="1.5" marker-end="url(#a2)"/><g font-family="Exo 2" font-size="10" fill="#90a4ae" text-anchor="middle"><line x1="60" y1="16" x2="60" y2="24" stroke="#90a4ae"/><text x="60" y="35">…</text><line x1="120" y1="16" x2="120" y2="24" stroke="#90a4ae"/><text x="120" y="35">…</text><line x1="180" y1="16" x2="180" y2="24" stroke="#90a4ae"/><text x="180" y="35">…</text><line x1="240" y1="16" x2="240" y2="24" stroke="#90a4ae"/><text x="240" y="35">…</text><line x1="300" y1="16" x2="300" y2="24" stroke="#90a4ae"/><text x="300" y="35">…</text></g></svg></div>
+      </div>
+      <button class="chk-btn" onclick="verificar(2,'(-inf,-5]')">▶ VERIFICAR RESPUESTA</button>
+      <div class="fb" id="fb2"></div>
+    </div>
+  </div>
+
+  <!-- EJ 3 -->
+  <div class="ej e3" id="ej3">
+    <div class="ej-hdr">
+      <div class="ej-num">3</div>
+      <div class="ej-inf">
+        <div class="ej-tit">EJERCICIO 03 — Coeficiente negativo</div>
+        <div class="ej-sub">⚠ El signo se invierte al dividir entre negativo</div>
+      </div>
+      <div class="ej-badge">⭐⭐ MEDIO</div>
+      <div class="done-ico">✅</div>
+    </div>
+    <div class="ej-body">
+      <div class="enun"><span class="enun-tag">RESOLVER:</span><span class="enun-formula">\( -4x + 6 \geq -10 \)</span></div>
+      <div class="pasos">
+        <div class="paso-row"><div class="paso-n">P1</div><div class="campo-tap" onclick="abrirTeclado(this,'dev')"><span class="ph">Restar 6 a ambos miembros…</span></div></div>
+        <div class="paso-row"><div class="paso-n">P2</div><div class="campo-tap" onclick="abrirTeclado(this,'dev')"><span class="ph">Dividir entre −4 (¡invertir signo!)…</span></div></div>
+        <div class="paso-row"><div class="paso-n">P3</div><div class="campo-tap" onclick="abrirTeclado(this,'dev')"><span class="ph">Resultado final…</span></div></div>
+      </div>
+      <div class="res-sec">
+        <span class="res-lbl">SOLUCIÓN: \( x \in \)</span>
+        <div class="res-campo" id="r3" onclick="abrirTeclado(this,'sol')"><span class="ph">Toca aquí…</span></div>
+        <div class="recta-sec"><div class="recta-lbl">// RECTA NUMÉRICA</div><svg class="recta-svg" id="sv3" viewBox="0 0 360 40"><defs><marker id="a3" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#90a4ae"/></marker></defs><line x1="10" y1="20" x2="348" y2="20" stroke="#90a4ae" stroke-width="1.5" marker-end="url(#a3)"/><g font-family="Exo 2" font-size="10" fill="#90a4ae" text-anchor="middle"><line x1="60" y1="16" x2="60" y2="24" stroke="#90a4ae"/><text x="60" y="35">…</text><line x1="120" y1="16" x2="120" y2="24" stroke="#90a4ae"/><text x="120" y="35">…</text><line x1="180" y1="16" x2="180" y2="24" stroke="#90a4ae"/><text x="180" y="35">…</text><line x1="240" y1="16" x2="240" y2="24" stroke="#90a4ae"/><text x="240" y="35">…</text><line x1="300" y1="16" x2="300" y2="24" stroke="#90a4ae"/><text x="300" y="35">…</text></g></svg></div>
+      </div>
+      <button class="chk-btn" onclick="verificar(3,'(-inf,4]')">▶ VERIFICAR RESPUESTA</button>
+      <div class="fb" id="fb3"></div>
+    </div>
+  </div>
+
+  <!-- EJ 4 -->
+  <div class="ej e4" id="ej4">
+    <div class="ej-hdr">
+      <div class="ej-num">4</div>
+      <div class="ej-inf">
+        <div class="ej-tit">EJERCICIO 04 — Con paréntesis</div>
+        <div class="ej-sub">Distribuye primero · luego simplifica y agrupa</div>
+      </div>
+      <div class="ej-badge">⭐⭐⭐ AVANZADO</div>
+      <div class="done-ico">✅</div>
+    </div>
+    <div class="ej-body">
+      <div class="enun"><span class="enun-tag">RESOLVER:</span><span class="enun-formula">\( 3(x-2) + 1 < 2(x+4) - 3 \)</span></div>
+      <div class="pasos">
+        <div class="paso-row"><div class="paso-n">P1</div><div class="campo-tap" onclick="abrirTeclado(this,'dev')"><span class="ph">Expandir paréntesis…</span></div></div>
+        <div class="paso-row"><div class="paso-n">P2</div><div class="campo-tap" onclick="abrirTeclado(this,'dev')"><span class="ph">Simplificar cada miembro…</span></div></div>
+        <div class="paso-row"><div class="paso-n">P3</div><div class="campo-tap" onclick="abrirTeclado(this,'dev')"><span class="ph">Agrupar términos con x…</span></div></div>
+        <div class="paso-row"><div class="paso-n">P4</div><div class="campo-tap" onclick="abrirTeclado(this,'dev')"><span class="ph">Despejar x…</span></div></div>
+      </div>
+      <div class="res-sec">
+        <span class="res-lbl">SOLUCIÓN: \( x \in \)</span>
+        <div class="res-campo" id="r4" onclick="abrirTeclado(this,'sol')"><span class="ph">Toca aquí…</span></div>
+        <div class="recta-sec"><div class="recta-lbl">// RECTA NUMÉRICA</div><svg class="recta-svg" id="sv4" viewBox="0 0 360 40"><defs><marker id="a4" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#90a4ae"/></marker></defs><line x1="10" y1="20" x2="348" y2="20" stroke="#90a4ae" stroke-width="1.5" marker-end="url(#a4)"/><g font-family="Exo 2" font-size="10" fill="#90a4ae" text-anchor="middle"><line x1="60" y1="16" x2="60" y2="24" stroke="#90a4ae"/><text x="60" y="35">…</text><line x1="120" y1="16" x2="120" y2="24" stroke="#90a4ae"/><text x="120" y="35">…</text><line x1="180" y1="16" x2="180" y2="24" stroke="#90a4ae"/><text x="180" y="35">…</text><line x1="240" y1="16" x2="240" y2="24" stroke="#90a4ae"/><text x="240" y="35">…</text><line x1="300" y1="16" x2="300" y2="24" stroke="#90a4ae"/><text x="300" y="35">…</text></g></svg></div>
+      </div>
+      <button class="chk-btn" onclick="verificar(4,'(-inf,10)')">▶ VERIFICAR RESPUESTA</button>
+      <div class="fb" id="fb4"></div>
+    </div>
+  </div>
+
+  <!-- EJ 5 -->
+  <div class="ej e5" id="ej5">
+    <div class="ej-hdr">
+      <div class="ej-num">5</div>
+      <div class="ej-inf">
+        <div class="ej-tit">EJERCICIO 05 — Doble desigualdad</div>
+        <div class="ej-sub">Opera simultáneamente en los tres miembros</div>
+      </div>
+      <div class="ej-badge">⭐⭐⭐ AVANZADO</div>
+      <div class="done-ico">✅</div>
+    </div>
+    <div class="ej-body">
+      <div class="enun"><span class="enun-tag">RESOLVER:</span><span class="enun-formula">\( -5 < 3x + 1 \leq 10 \)</span></div>
+      <div class="pasos">
+        <div class="paso-row"><div class="paso-n">P1</div><div class="campo-tap" onclick="abrirTeclado(this,'dev')"><span class="ph">Restar 1 en los tres miembros…</span></div></div>
+        <div class="paso-row"><div class="paso-n">P2</div><div class="campo-tap" onclick="abrirTeclado(this,'dev')"><span class="ph">Dividir entre 3 los tres miembros…</span></div></div>
+        <div class="paso-row"><div class="paso-n">P3</div><div class="campo-tap" onclick="abrirTeclado(this,'dev')"><span class="ph">Interpretar el intervalo acotado…</span></div></div>
+      </div>
+      <div class="res-sec">
+        <span class="res-lbl">SOLUCIÓN: \( x \in \)</span>
+        <div class="res-campo" id="r5" onclick="abrirTeclado(this,'sol')"><span class="ph">Toca aquí…</span></div>
+        <div class="recta-sec"><div class="recta-lbl">// RECTA NUMÉRICA</div><svg class="recta-svg" id="sv5" viewBox="0 0 360 40"><defs><marker id="a5" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#90a4ae"/></marker></defs><line x1="10" y1="20" x2="348" y2="20" stroke="#90a4ae" stroke-width="1.5" marker-end="url(#a5)"/><g font-family="Exo 2" font-size="10" fill="#90a4ae" text-anchor="middle"><line x1="60" y1="16" x2="60" y2="24" stroke="#90a4ae"/><text x="60" y="35">…</text><line x1="120" y1="16" x2="120" y2="24" stroke="#90a4ae"/><text x="120" y="35">…</text><line x1="180" y1="16" x2="180" y2="24" stroke="#90a4ae"/><text x="180" y="35">…</text><line x1="240" y1="16" x2="240" y2="24" stroke="#90a4ae"/><text x="240" y="35">…</text><line x1="300" y1="16" x2="300" y2="24" stroke="#90a4ae"/><text x="300" y="35">…</text></g></svg></div>
+      </div>
+      <button class="chk-btn" onclick="verificar(5,'(-2,3]')">▶ VERIFICAR RESPUESTA</button>
+      <div class="fb" id="fb5"></div>
+    </div>
+  </div>
+
+  <!-- EJ 6 -->
+  <div class="ej e6" id="ej6">
+    <div class="ej-hdr">
+      <div class="ej-num">6</div>
+      <div class="ej-inf">
+        <div class="ej-tit">EJERCICIO 06 — Desafío con fracciones</div>
+        <div class="ej-sub">Usa el m.c.m. para eliminar denominadores</div>
+      </div>
+      <div class="ej-badge">🔥 DESAFÍO</div>
+      <div class="done-ico">✅</div>
+    </div>
+    <div class="ej-body">
+      <div class="enun"><span class="enun-tag">RESOLVER:</span><span class="enun-formula">\( \dfrac{x+3}{2} - 1 > \dfrac{2x-1}{3} \)</span></div>
+      <div class="pasos">
+        <div class="paso-row"><div class="paso-n">P1</div><div class="campo-tap" onclick="abrirTeclado(this,'dev')"><span class="ph">m.c.m.(2,3)=6 · multiplicar todo por 6…</span></div></div>
+        <div class="paso-row"><div class="paso-n">P2</div><div class="campo-tap" onclick="abrirTeclado(this,'dev')"><span class="ph">Expandir y simplificar…</span></div></div>
+        <div class="paso-row"><div class="paso-n">P3</div><div class="campo-tap" onclick="abrirTeclado(this,'dev')"><span class="ph">Agrupar términos con x…</span></div></div>
+        <div class="paso-row"><div class="paso-n">P4</div><div class="campo-tap" onclick="abrirTeclado(this,'dev')"><span class="ph">Despejar x…</span></div></div>
+      </div>
+      <div class="res-sec">
+        <span class="res-lbl">SOLUCIÓN: \( x \in \)</span>
+        <div class="res-campo" id="r6" onclick="abrirTeclado(this,'sol')"><span class="ph">Toca aquí…</span></div>
+        <div class="recta-sec"><div class="recta-lbl">// RECTA NUMÉRICA</div><svg class="recta-svg" id="sv6" viewBox="0 0 360 40"><defs><marker id="a6" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#90a4ae"/></marker></defs><line x1="10" y1="20" x2="348" y2="20" stroke="#90a4ae" stroke-width="1.5" marker-end="url(#a6)"/><g font-family="Exo 2" font-size="10" fill="#90a4ae" text-anchor="middle"><line x1="60" y1="16" x2="60" y2="24" stroke="#90a4ae"/><text x="60" y="35">…</text><line x1="120" y1="16" x2="120" y2="24" stroke="#90a4ae"/><text x="120" y="35">…</text><line x1="180" y1="16" x2="180" y2="24" stroke="#90a4ae"/><text x="180" y="35">…</text><line x1="240" y1="16" x2="240" y2="24" stroke="#90a4ae"/><text x="240" y="35">…</text><line x1="300" y1="16" x2="300" y2="24" stroke="#90a4ae"/><text x="300" y="35">…</text></g></svg></div>
+      </div>
+      <button class="chk-btn" onclick="verificar(6,'(-inf,5)')">▶ VERIFICAR RESPUESTA</button>
+      <div class="fb" id="fb6"></div>
+    </div>
+  </div>
+
+  <!-- Score -->
+  <div class="score" id="score">
+    <div class="score-tit">✦ MISIÓN COMPLETADA ✦</div>
+    <div class="score-grid">
+      <div class="score-item"><div class="score-val" id="sc-ej">6/6</div><div class="score-lbl">RESUELTOS</div></div>
+      <div class="score-item"><div class="score-val" id="sc-pt">0</div><div class="score-lbl">PUNTOS</div></div>
+      <div class="score-item"><div class="score-val" id="sc-tm">–</div><div class="score-lbl">TIEMPO</div></div>
+    </div>
+  </div>
+
+</div><!-- fin wrap -->
+
+<button class="print-btn" onclick="window.print()">🖨 IMPRIMIR</button>
+
+<!-- TECLADO MATEMÁTICO -->
+<div class="kb-overlay" id="kb-overlay" onclick="cerrarTeclado()"></div>
+<div class="kb" id="kb">
+
+  <div class="kb-preview">
+    <div class="kb-preview-val" id="kb-val" data-ph="Escribe aquí…"></div>
+    <button class="kb-borrar" onclick="kbBorrarTodo()">BORRAR TODO</button>
+  </div>
+
+  <div class="kb-modos">
+    <button class="kb-modo activo" id="km-sol" onclick="kbModo('sol')">INTERVALO</button>
+    <button class="kb-modo" id="km-dev" onclick="kbModo('dev')">DESARROLLO</button>
+  </div>
+
+  <!-- Panel INTERVALO -->
+  <div class="kb-panel activo" id="kp-sol">
+    <div class="kb-fila">
+      <button class="kb-btn esp" onclick="kbEsc('(')"><b>(</b></button>
+      <button class="kb-btn esp" onclick="kbEsc(')')"><b>)</b></button>
+      <button class="kb-btn esp" onclick="kbEsc('[')"><b>[</b></button>
+      <button class="kb-btn esp" onclick="kbEsc(']')"><b>]</b></button>
+      <button class="kb-btn esp" onclick="kbEsc('+∞')">+∞</button>
+      <button class="kb-btn esp" onclick="kbEsc('-∞')">-∞</button>
+    </div>
+    <div class="kb-fila">
+      <button class="kb-btn" onclick="kbEsc('1')">1</button>
+      <button class="kb-btn" onclick="kbEsc('2')">2</button>
+      <button class="kb-btn" onclick="kbEsc('3')">3</button>
+      <button class="kb-btn" onclick="kbEsc('4')">4</button>
+      <button class="kb-btn" onclick="kbEsc('5')">5</button>
+      <button class="kb-btn del" onclick="kbBorrar()">⌫</button>
+    </div>
+    <div class="kb-fila">
+      <button class="kb-btn" onclick="kbEsc('6')">6</button>
+      <button class="kb-btn" onclick="kbEsc('7')">7</button>
+      <button class="kb-btn" onclick="kbEsc('8')">8</button>
+      <button class="kb-btn" onclick="kbEsc('9')">9</button>
+      <button class="kb-btn" onclick="kbEsc('0')">0</button>
+      <button class="kb-btn" onclick="kbEsc('-')">−</button>
+    </div>
+    <div class="kb-fila">
+      <button class="kb-btn" onclick="kbEsc(',')"> , </button>
+      <button class="kb-btn" onclick="kbEsc('/')">/</button>
+      <button class="kb-btn ok ancho2" onclick="cerrarTeclado()">✓ LISTO</button>
+    </div>
+  </div>
+
+  <!-- Panel DESARROLLO -->
+  <div class="kb-panel" id="kp-dev">
+    <div class="kb-fila">
+      <button class="kb-btn esp" onclick="kbEsc('≤')">≤</button>
+      <button class="kb-btn esp" onclick="kbEsc('≥')">≥</button>
+      <button class="kb-btn esp" onclick="kbEsc('<')">&lt;</button>
+      <button class="kb-btn esp" onclick="kbEsc('>')">></button>
+      <button class="kb-btn esp" onclick="kbEsc('⟹')">⟹</button>
+      <button class="kb-btn del" onclick="kbBorrar()">⌫</button>
+    </div>
+    <div class="kb-fila">
+      <button class="kb-btn" onclick="kbEsc('1')">1</button>
+      <button class="kb-btn" onclick="kbEsc('2')">2</button>
+      <button class="kb-btn" onclick="kbEsc('3')">3</button>
+      <button class="kb-btn" onclick="kbEsc('4')">4</button>
+      <button class="kb-btn" onclick="kbEsc('5')">5</button>
+      <button class="kb-btn" onclick="kbEsc('x')">x</button>
+    </div>
+    <div class="kb-fila">
+      <button class="kb-btn" onclick="kbEsc('6')">6</button>
+      <button class="kb-btn" onclick="kbEsc('7')">7</button>
+      <button class="kb-btn" onclick="kbEsc('8')">8</button>
+      <button class="kb-btn" onclick="kbEsc('9')">9</button>
+      <button class="kb-btn" onclick="kbEsc('0')">0</button>
+      <button class="kb-btn" onclick="kbEsc('-')">−</button>
+    </div>
+    <div class="kb-fila">
+      <button class="kb-btn" onclick="kbEsc('+')">+</button>
+      <button class="kb-btn" onclick="kbEsc('=')">=</button>
+      <button class="kb-btn esp" onclick="kbEsc('÷')">÷</button>
+      <button class="kb-btn" onclick="kbEsc('/')">/</button>
+      <button class="kb-btn" onclick="kbEsc(' ')">␣</button>
+      <button class="kb-btn ok" onclick="cerrarTeclado()">✓</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ── Timer ────────────────────────────────────────────
+const t0 = Date.now();
+const tmr = setInterval(() => {
+  const s = Math.floor((Date.now() - t0) / 1000);
+  document.getElementById('htm').textContent =
+    String(Math.floor(s / 60)).padStart(2,'0') + ':' + String(s % 60).padStart(2,'0');
+}, 1000);
+
+// ── Estado ───────────────────────────────────────────
+let completados = 0, puntos = 0;
+const intentos = {};
+const bases = {1:10, 2:15, 3:15, 4:20, 5:25, 6:30};
+
+// ── Teclado ──────────────────────────────────────────
+let elActivo = null;
+let kbTexto = '';
+
+function kbModo(m) {
+  document.getElementById('kp-sol').classList.toggle('activo', m === 'sol');
+  document.getElementById('kp-dev').classList.toggle('activo', m === 'dev');
+  document.getElementById('km-sol').classList.toggle('activo', m === 'sol');
+  document.getElementById('km-dev').classList.toggle('activo', m === 'dev');
+}
+
+function abrirTeclado(el, modo) {
+  elActivo = el;
+  kbTexto = el.getAttribute('data-val') || '';
+  actualizarPreview();
+  kbModo(modo || 'sol');
+  document.getElementById('kb').classList.add('show');
+  document.getElementById('kb-overlay').classList.add('show');
+  // Scroll suave al ejercicio
+  const ej = el.closest('.ej');
+  if (ej) setTimeout(() => ej.scrollIntoView({behavior:'smooth', block:'start'}), 150);
+}
+
+function cerrarTeclado() {
+  if (elActivo) {
+    elActivo.setAttribute('data-val', kbTexto);
+    const ph = elActivo.querySelector('.ph');
+    // Limpiar texto anterior
+    Array.from(elActivo.childNodes).forEach(n => { if (n.nodeType === 3) n.remove(); });
+    if (kbTexto) {
+      elActivo.insertBefore(document.createTextNode(kbTexto), elActivo.firstChild);
+      if (ph) ph.style.display = 'none';
+      elActivo.style.color = 'var(--textoG)';
+    } else {
+      if (ph) ph.style.display = '';
+    }
+    elActivo = null;
+  }
+  document.getElementById('kb').classList.remove('show');
+  document.getElementById('kb-overlay').classList.remove('show');
+}
+
+function actualizarPreview() {
+  const el = document.getElementById('kb-val');
+  el.textContent = kbTexto;
+  el.classList.toggle('empty', !kbTexto);
+}
+
+function kbEsc(ch) {
+  kbTexto += ch;
+  actualizarPreview();
+}
+
+function kbBorrar() {
+  if (kbTexto.endsWith('+∞') || kbTexto.endsWith('-∞')) {
+    kbTexto = kbTexto.slice(0, -2);
+  } else {
+    kbTexto = kbTexto.slice(0, -1);
+  }
+  actualizarPreview();
+}
+
+function kbBorrarTodo() {
+  kbTexto = '';
+  actualizarPreview();
+}
+
+// ── Verificar ────────────────────────────────────────
+function norm(s) {
+  return (s || '').trim()
+    .replace(/\s+/g, '')
+    .replace(/[−–−]/g, '-')   // normalizar guiones
+    .replace(/∞/g, 'inf')      // ∞ → inf  (primero!)
+    .replace(/-inf/gi, '-inf')      // ya normalizado
+    .replace(/\+inf/gi, '+inf')
+    .replace(/[Ii]nfinity/g, 'inf')
+    .toLowerCase();
+}
+
+function verificar(n, respuesta) {
+  const card = document.getElementById('ej' + n);
+  if (card.classList.contains('done')) return;
+
+  intentos[n] = (intentos[n] || 0) + 1;
+  const res = document.getElementById('r' + n);
+  const fb  = document.getElementById('fb' + n);
+  const btn = card.querySelector('.chk-btn');
+  const got = norm(res.getAttribute('data-val') || '');
+  const ok  = norm(respuesta);
+
+  if (got === ok) {
+    const earn = Math.max(bases[n] - (intentos[n] - 1) * 5, 5);
+    puntos += earn;
+    completados++;
+    card.classList.add('done');
+    btn.classList.add('ok');
+    btn.textContent = '✓ CORRECTO — +' + earn + ' PTS';
+    fb.className = 'fb c show';
+    fb.textContent = '🎯 ¡Excelente! Correcto en ' + intentos[n] + ' ' + (intentos[n] === 1 ? 'intento' : 'intentos') + '.';
+    res.style.cssText = 'background:var(--verdeL);border-color:var(--verde);color:var(--verde);min-width:120px;text-align:center;min-height:38px;display:flex;align-items:center;justify-content:center;border-radius:8px;padding:7px 12px;font-weight:700;font-size:14px';
+    animarRecta(n);
+
+    document.getElementById('hej').textContent = completados + '/6';
+    document.getElementById('hpt').textContent = puntos;
+    const pct = Math.round(completados / 6 * 100);
+    document.getElementById('pfill').style.width = pct + '%';
+    document.getElementById('hpct').textContent = pct + '%';
+
+    if (completados === 6) terminar();
+  } else {
+    fb.className = 'fb w show';
+    fb.textContent = '❌ Revisa el procedimiento — intento ' + intentos[n] + '. Verifica el signo y el tipo de corchete.';
+    const orig = res.style.borderColor;
+    res.style.borderColor = 'var(--rojo)';
+    setTimeout(() => res.style.borderColor = '', 1500);
+  }
+}
+
+function terminar() {
+  clearInterval(tmr);
+  const s = Math.floor((Date.now() - t0) / 1000);
+  document.getElementById('sc-ej').textContent = '6/6';
+  document.getElementById('sc-pt').textContent = puntos;
+  document.getElementById('sc-tm').textContent =
+    String(Math.floor(s / 60)).padStart(2,'0') + ':' + String(s % 60).padStart(2,'0');
+  const p = document.getElementById('score');
+  p.classList.add('show');
+  setTimeout(() => p.scrollIntoView({behavior:'smooth', block:'center'}), 100);
+}
+
+// ── Animación de rectas numéricas ────────────────────
+const datosRecta = {
+  1: {tipo:'der',  v1:5,  ab1:true},                          // (5,+∞)
+  2: {tipo:'izq',  v1:-5, ab1:false},                         // (-∞,-5]
+  3: {tipo:'izq',  v1:4,  ab1:false},                         // (-∞,4]
+  4: {tipo:'izq',  v1:10, ab1:true},                          // (-∞,10)
+  5: {tipo:'entre',v1:-2, ab1:true, v2:3, ab2:false},         // (-2,3]
+  6: {tipo:'izq',  v1:5,  ab1:true},                          // (-∞,5)
+};
+
+// Map a real value to SVG x coordinate
+// SVG viewBox 0 0 360 40, axis from x=10 to x=348
+// We use a fixed scale: each exercise defines its own range
+const rangos = {
+  1: {min:-2,  max:14},
+  2: {min:-12, max:2},
+  3: {min:-2,  max:10},
+  4: {min:0,   max:18},
+  5: {min:-6,  max:7},
+  6: {min:-2,  max:12},
+};
+
+function valToX(v, rango) {
+  const svgMin = 14, svgMax = 336;
+  return svgMin + (v - rango.min) / (rango.max - rango.min) * (svgMax - svgMin);
+}
+
+function animarRecta(n) {
+  const svg = document.getElementById('sv' + n);
+  if (!svg) return;
+  const d = datosRecta[n];
+  const r = rangos[n];
+
+  // Update axis tick labels
+  const ticks = svg.querySelectorAll('text');
+  const tickVals = ticksParaRango(r.min, r.max);
+  ticks.forEach((t, i) => {
+    if (tickVals[i] !== undefined) t.textContent = tickVals[i];
+  });
+
+  // Update tick x positions
+  const lines = svg.querySelectorAll('line:not([marker-end])');
+  lines.forEach((l, i) => {
+    if (tickVals[i] !== undefined) {
+      const x = valToX(tickVals[i], r);
+      l.setAttribute('x1', x); l.setAttribute('x2', x);
+      // also update corresponding text
+      if (ticks[i]) { ticks[i].setAttribute('x', x); }
+    }
+  });
+
+  const color = getComputedStyle(document.documentElement)
+    .getPropertyValue('--verde').trim() || '#2e7d32';
+
+  // Remove old animation elements
+  svg.querySelectorAll('.anim').forEach(el => el.remove());
+
+  const y = 20;
+
+  if (d.tipo === 'der') {
+    // (v1, +∞) or [v1, +∞)
+    const x1 = valToX(d.v1, r);
+    dibujarLinea(svg, x1, 338, y, color);
+    dibujarPunto(svg, x1, y, d.ab1, color);
+    dibujarEtiqueta(svg, x1, d.v1, color);
+  } else if (d.tipo === 'izq') {
+    // (-∞, v1) or (-∞, v1]
+    const x1 = valToX(d.v1, r);
+    dibujarLinea(svg, 14, x1, y, color);
+    dibujarPunto(svg, x1, y, d.ab1, color);
+    dibujarEtiqueta(svg, x1, d.v1, color);
+  } else if (d.tipo === 'entre') {
+    const x1 = valToX(d.v1, r);
+    const x2 = valToX(d.v2, r);
+    dibujarLinea(svg, x1, x2, y, color);
+    dibujarPunto(svg, x1, y, d.ab1, color);
+    dibujarPunto(svg, x2, y, d.ab2, color);
+    dibujarEtiqueta(svg, x1, d.v1, color);
+    dibujarEtiqueta(svg, x2, d.v2, color);
+  }
+}
+
+function dibujarLinea(svg, x1, x2, y, color) {
+  const line = document.createElementNS('http://www.w3.org/2000/svg','line');
+  line.setAttribute('x1', x1); line.setAttribute('y1', y);
+  line.setAttribute('x2', x2); line.setAttribute('y2', y);
+  line.setAttribute('stroke', color); line.setAttribute('stroke-width', '4');
+  line.setAttribute('stroke-linecap', 'round');
+  line.classList.add('anim');
+  // Animate stroke-dasharray
+  const len = Math.abs(x2 - x1);
+  line.setAttribute('stroke-dasharray', len);
+  line.setAttribute('stroke-dashoffset', len);
+  svg.appendChild(line);
+  requestAnimationFrame(() => {
+    line.style.transition = 'stroke-dashoffset 0.7s ease';
+    line.setAttribute('stroke-dashoffset', '0');
+  });
+}
+
+function dibujarPunto(svg, x, y, abierto, color) {
+  const c = document.createElementNS('http://www.w3.org/2000/svg','circle');
+  c.setAttribute('cx', x); c.setAttribute('cy', y); c.setAttribute('r', '6');
+  c.setAttribute('fill', abierto ? '#fff' : color);
+  c.setAttribute('stroke', color); c.setAttribute('stroke-width', '2.5');
+  c.classList.add('anim');
+  c.style.opacity = '0';
+  svg.appendChild(c);
+  setTimeout(() => {
+    c.style.transition = 'opacity 0.3s ease, r 0.3s ease';
+    c.style.opacity = '1';
+  }, 400);
+}
+
+function dibujarEtiqueta(svg, x, val, color) {
+  const txt = document.createElementNS('http://www.w3.org/2000/svg','text');
+  txt.setAttribute('x', x); txt.setAttribute('y', 12);
+  txt.setAttribute('text-anchor', 'middle');
+  txt.setAttribute('font-family', 'Exo 2, sans-serif');
+  txt.setAttribute('font-size', '11'); txt.setAttribute('font-weight', '700');
+  txt.setAttribute('fill', color);
+  txt.textContent = val;
+  txt.classList.add('anim');
+  txt.style.opacity = '0';
+  svg.appendChild(txt);
+  setTimeout(() => {
+    txt.style.transition = 'opacity 0.4s ease';
+    txt.style.opacity = '1';
+  }, 500);
+}
+
+function ticksParaRango(min, max) {
+  const span = max - min;
+  const step = span <= 10 ? 1 : span <= 20 ? 2 : 5;
+  const start = Math.ceil(min / step) * step;
+  const vals = [];
+  for (let v = start; v <= max && vals.length < 5; v += step) {
+    vals.push(v);
+  }
+  return vals;
+}
+
+</script>
+</body>
+</html>

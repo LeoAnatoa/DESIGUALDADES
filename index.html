@@ -6,27 +6,9 @@
 <title>Mision: Desigualdades</title>
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Exo+2:wght@400;500;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js" async>
-// ── Animación de rectas numéricas ────────────────────
-const datosRecta = {
-  1: {tipo:'der',  v1:5,  ab1:true},                          // (5,+∞)
-  2: {tipo:'izq',  v1:-5, ab1:false},                         // (-∞,-5]
-  3: {tipo:'izq',  v1:4,  ab1:false},                         // (-∞,4]
-  4: {tipo:'izq',  v1:10, ab1:true},                          // (-∞,10)
-  5: {tipo:'entre',v1:-2, ab1:true, v2:3, ab2:false},         // (-2,3]
-  6: {tipo:'izq',  v1:5,  ab1:true},                          // (-∞,5)
-};
-
-// Map a real value to SVG x coordinate
-// SVG viewBox 0 0 360 40, axis from x=10 to x=348
-// We use a fixed scale: each exercise defines its own range
-const rangos = {
-  1: {min:-2,  max:14},
-  2: {min:-12, max:2},
-  3: {min:-2,  max:10},
-  4: {min:0,   max:18},
-  5: {min:-6,  max:7},
-  6: {min:-2,  max:12},
-};
+// ── datosRecta y rangos se asignan dinámicamente al generar ejercicios ──
+let datosRecta = {};
+let rangos = {};
 
 function valToX(v, rango) {
   const svgMin = 14, svgMax = 336;
@@ -488,182 +470,10 @@ body { font-family: var(--fb); background: #eef2ff; color: var(--texto); min-hei
     </div>
   </div>
 
-  <!-- ===== EJERCICIOS ===== -->
+  <!-- ===== EJERCICIOS (generados dinámicamente) ===== -->
+  <div id="ejercicios-container"></div>
 
-  <!-- EJ 1 -->
-  <div class="ej e1" id="ej1">
-    <div class="ej-hdr">
-      <div class="ej-num">1</div>
-      <div class="ej-inf">
-        <div class="ej-tit">EJERCICIO 01 — Caso directo</div>
-        <div class="ej-sub">Despeje simple · sin inversión de signo</div>
-      </div>
-      <div class="ej-badge">⭐ BÁSICO</div>
-      <div class="done-ico">✅</div>
-    </div>
-    <div class="ej-body">
-      <div class="enun"><span class="enun-tag">RESOLVER:</span><span class="enun-formula">\( 3x - 4 > 11 \)</span></div>
-      <div class="pasos">
-        <div class="paso-row"><div class="paso-n">P1</div><div class="campo-tap" onclick="abrirTeclado(this,'dev')"><span class="ph">Sumar 4 a ambos miembros…</span></div></div>
-        <div class="paso-row"><div class="paso-n">P2</div><div class="campo-tap" onclick="abrirTeclado(this,'dev')"><span class="ph">Dividir entre 3…</span></div></div>
-        <div class="paso-row"><div class="paso-n">P3</div><div class="campo-tap" onclick="abrirTeclado(this,'dev')"><span class="ph">Resultado final…</span></div></div>
-      </div>
-      <div class="res-sec">
-        <span class="res-lbl">SOLUCIÓN: \( x \in \)</span>
-        <div class="res-campo" id="r1" onclick="abrirTeclado(this,'sol')"><span class="ph">Toca aquí…</span></div>
-        <div class="recta-sec">
-          <div class="recta-lbl">// RECTA NUMÉRICA</div>
-          <svg class="recta-svg" id="sv1" viewBox="0 0 360 40"><defs><marker id="a1" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#90a4ae"/></marker></defs><line x1="10" y1="20" x2="348" y2="20" stroke="#90a4ae" stroke-width="1.5" marker-end="url(#a1)"/><g font-family="Exo 2" font-size="10" fill="#90a4ae" text-anchor="middle"><line x1="60" y1="16" x2="60" y2="24" stroke="#90a4ae"/><text x="60" y="35">…</text><line x1="120" y1="16" x2="120" y2="24" stroke="#90a4ae"/><text x="120" y="35">…</text><line x1="180" y1="16" x2="180" y2="24" stroke="#90a4ae"/><text x="180" y="35">…</text><line x1="240" y1="16" x2="240" y2="24" stroke="#90a4ae"/><text x="240" y="35">…</text><line x1="300" y1="16" x2="300" y2="24" stroke="#90a4ae"/><text x="300" y="35">…</text></g></svg>
-        </div>
-      </div>
-      <button class="chk-btn" onclick="verificar(1,'(5,+inf)')">▶ VERIFICAR RESPUESTA</button>
-      <div class="fb" id="fb1"></div>
-    </div>
-  </div>
-
-  <!-- EJ 2 -->
-  <div class="ej e2" id="ej2">
-    <div class="ej-hdr">
-      <div class="ej-num">2</div>
-      <div class="ej-inf">
-        <div class="ej-tit">EJERCICIO 02 — Términos en ambos miembros</div>
-        <div class="ej-sub">Agrupar x a un lado · constantes al otro</div>
-      </div>
-      <div class="ej-badge">⭐⭐ MEDIO</div>
-      <div class="done-ico">✅</div>
-    </div>
-    <div class="ej-body">
-      <div class="enun"><span class="enun-tag">RESOLVER:</span><span class="enun-formula">\( 5x + 2 \leq 3x - 8 \)</span></div>
-      <div class="pasos">
-        <div class="paso-row"><div class="paso-n">P1</div><div class="campo-tap" onclick="abrirTeclado(this,'dev')"><span class="ph">Pasar 3x a la izquierda…</span></div></div>
-        <div class="paso-row"><div class="paso-n">P2</div><div class="campo-tap" onclick="abrirTeclado(this,'dev')"><span class="ph">Simplificar…</span></div></div>
-        <div class="paso-row"><div class="paso-n">P3</div><div class="campo-tap" onclick="abrirTeclado(this,'dev')"><span class="ph">Despejar x…</span></div></div>
-      </div>
-      <div class="res-sec">
-        <span class="res-lbl">SOLUCIÓN: \( x \in \)</span>
-        <div class="res-campo" id="r2" onclick="abrirTeclado(this,'sol')"><span class="ph">Toca aquí…</span></div>
-        <div class="recta-sec"><div class="recta-lbl">// RECTA NUMÉRICA</div><svg class="recta-svg" id="sv2" viewBox="0 0 360 40"><defs><marker id="a2" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#90a4ae"/></marker></defs><line x1="10" y1="20" x2="348" y2="20" stroke="#90a4ae" stroke-width="1.5" marker-end="url(#a2)"/><g font-family="Exo 2" font-size="10" fill="#90a4ae" text-anchor="middle"><line x1="60" y1="16" x2="60" y2="24" stroke="#90a4ae"/><text x="60" y="35">…</text><line x1="120" y1="16" x2="120" y2="24" stroke="#90a4ae"/><text x="120" y="35">…</text><line x1="180" y1="16" x2="180" y2="24" stroke="#90a4ae"/><text x="180" y="35">…</text><line x1="240" y1="16" x2="240" y2="24" stroke="#90a4ae"/><text x="240" y="35">…</text><line x1="300" y1="16" x2="300" y2="24" stroke="#90a4ae"/><text x="300" y="35">…</text></g></svg></div>
-      </div>
-      <button class="chk-btn" onclick="verificar(2,'(-inf,-5]')">▶ VERIFICAR RESPUESTA</button>
-      <div class="fb" id="fb2"></div>
-    </div>
-  </div>
-
-  <!-- EJ 3 -->
-  <div class="ej e3" id="ej3">
-    <div class="ej-hdr">
-      <div class="ej-num">3</div>
-      <div class="ej-inf">
-        <div class="ej-tit">EJERCICIO 03 — Coeficiente negativo</div>
-        <div class="ej-sub">⚠ El signo se invierte al dividir entre negativo</div>
-      </div>
-      <div class="ej-badge">⭐⭐ MEDIO</div>
-      <div class="done-ico">✅</div>
-    </div>
-    <div class="ej-body">
-      <div class="enun"><span class="enun-tag">RESOLVER:</span><span class="enun-formula">\( -4x + 6 \geq -10 \)</span></div>
-      <div class="pasos">
-        <div class="paso-row"><div class="paso-n">P1</div><div class="campo-tap" onclick="abrirTeclado(this,'dev')"><span class="ph">Restar 6 a ambos miembros…</span></div></div>
-        <div class="paso-row"><div class="paso-n">P2</div><div class="campo-tap" onclick="abrirTeclado(this,'dev')"><span class="ph">Dividir entre −4 (¡invertir signo!)…</span></div></div>
-        <div class="paso-row"><div class="paso-n">P3</div><div class="campo-tap" onclick="abrirTeclado(this,'dev')"><span class="ph">Resultado final…</span></div></div>
-      </div>
-      <div class="res-sec">
-        <span class="res-lbl">SOLUCIÓN: \( x \in \)</span>
-        <div class="res-campo" id="r3" onclick="abrirTeclado(this,'sol')"><span class="ph">Toca aquí…</span></div>
-        <div class="recta-sec"><div class="recta-lbl">// RECTA NUMÉRICA</div><svg class="recta-svg" id="sv3" viewBox="0 0 360 40"><defs><marker id="a3" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#90a4ae"/></marker></defs><line x1="10" y1="20" x2="348" y2="20" stroke="#90a4ae" stroke-width="1.5" marker-end="url(#a3)"/><g font-family="Exo 2" font-size="10" fill="#90a4ae" text-anchor="middle"><line x1="60" y1="16" x2="60" y2="24" stroke="#90a4ae"/><text x="60" y="35">…</text><line x1="120" y1="16" x2="120" y2="24" stroke="#90a4ae"/><text x="120" y="35">…</text><line x1="180" y1="16" x2="180" y2="24" stroke="#90a4ae"/><text x="180" y="35">…</text><line x1="240" y1="16" x2="240" y2="24" stroke="#90a4ae"/><text x="240" y="35">…</text><line x1="300" y1="16" x2="300" y2="24" stroke="#90a4ae"/><text x="300" y="35">…</text></g></svg></div>
-      </div>
-      <button class="chk-btn" onclick="verificar(3,'(-inf,4]')">▶ VERIFICAR RESPUESTA</button>
-      <div class="fb" id="fb3"></div>
-    </div>
-  </div>
-
-  <!-- EJ 4 -->
-  <div class="ej e4" id="ej4">
-    <div class="ej-hdr">
-      <div class="ej-num">4</div>
-      <div class="ej-inf">
-        <div class="ej-tit">EJERCICIO 04 — Con paréntesis</div>
-        <div class="ej-sub">Distribuye primero · luego simplifica y agrupa</div>
-      </div>
-      <div class="ej-badge">⭐⭐⭐ AVANZADO</div>
-      <div class="done-ico">✅</div>
-    </div>
-    <div class="ej-body">
-      <div class="enun"><span class="enun-tag">RESOLVER:</span><span class="enun-formula">\( 3(x-2) + 1 < 2(x+4) - 3 \)</span></div>
-      <div class="pasos">
-        <div class="paso-row"><div class="paso-n">P1</div><div class="campo-tap" onclick="abrirTeclado(this,'dev')"><span class="ph">Expandir paréntesis…</span></div></div>
-        <div class="paso-row"><div class="paso-n">P2</div><div class="campo-tap" onclick="abrirTeclado(this,'dev')"><span class="ph">Simplificar cada miembro…</span></div></div>
-        <div class="paso-row"><div class="paso-n">P3</div><div class="campo-tap" onclick="abrirTeclado(this,'dev')"><span class="ph">Agrupar términos con x…</span></div></div>
-        <div class="paso-row"><div class="paso-n">P4</div><div class="campo-tap" onclick="abrirTeclado(this,'dev')"><span class="ph">Despejar x…</span></div></div>
-      </div>
-      <div class="res-sec">
-        <span class="res-lbl">SOLUCIÓN: \( x \in \)</span>
-        <div class="res-campo" id="r4" onclick="abrirTeclado(this,'sol')"><span class="ph">Toca aquí…</span></div>
-        <div class="recta-sec"><div class="recta-lbl">// RECTA NUMÉRICA</div><svg class="recta-svg" id="sv4" viewBox="0 0 360 40"><defs><marker id="a4" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#90a4ae"/></marker></defs><line x1="10" y1="20" x2="348" y2="20" stroke="#90a4ae" stroke-width="1.5" marker-end="url(#a4)"/><g font-family="Exo 2" font-size="10" fill="#90a4ae" text-anchor="middle"><line x1="60" y1="16" x2="60" y2="24" stroke="#90a4ae"/><text x="60" y="35">…</text><line x1="120" y1="16" x2="120" y2="24" stroke="#90a4ae"/><text x="120" y="35">…</text><line x1="180" y1="16" x2="180" y2="24" stroke="#90a4ae"/><text x="180" y="35">…</text><line x1="240" y1="16" x2="240" y2="24" stroke="#90a4ae"/><text x="240" y="35">…</text><line x1="300" y1="16" x2="300" y2="24" stroke="#90a4ae"/><text x="300" y="35">…</text></g></svg></div>
-      </div>
-      <button class="chk-btn" onclick="verificar(4,'(-inf,10)')">▶ VERIFICAR RESPUESTA</button>
-      <div class="fb" id="fb4"></div>
-    </div>
-  </div>
-
-  <!-- EJ 5 -->
-  <div class="ej e5" id="ej5">
-    <div class="ej-hdr">
-      <div class="ej-num">5</div>
-      <div class="ej-inf">
-        <div class="ej-tit">EJERCICIO 05 — Doble desigualdad</div>
-        <div class="ej-sub">Opera simultáneamente en los tres miembros</div>
-      </div>
-      <div class="ej-badge">⭐⭐⭐ AVANZADO</div>
-      <div class="done-ico">✅</div>
-    </div>
-    <div class="ej-body">
-      <div class="enun"><span class="enun-tag">RESOLVER:</span><span class="enun-formula">\( -5 < 3x + 1 \leq 10 \)</span></div>
-      <div class="pasos">
-        <div class="paso-row"><div class="paso-n">P1</div><div class="campo-tap" onclick="abrirTeclado(this,'dev')"><span class="ph">Restar 1 en los tres miembros…</span></div></div>
-        <div class="paso-row"><div class="paso-n">P2</div><div class="campo-tap" onclick="abrirTeclado(this,'dev')"><span class="ph">Dividir entre 3 los tres miembros…</span></div></div>
-        <div class="paso-row"><div class="paso-n">P3</div><div class="campo-tap" onclick="abrirTeclado(this,'dev')"><span class="ph">Interpretar el intervalo acotado…</span></div></div>
-      </div>
-      <div class="res-sec">
-        <span class="res-lbl">SOLUCIÓN: \( x \in \)</span>
-        <div class="res-campo" id="r5" onclick="abrirTeclado(this,'sol')"><span class="ph">Toca aquí…</span></div>
-        <div class="recta-sec"><div class="recta-lbl">// RECTA NUMÉRICA</div><svg class="recta-svg" id="sv5" viewBox="0 0 360 40"><defs><marker id="a5" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#90a4ae"/></marker></defs><line x1="10" y1="20" x2="348" y2="20" stroke="#90a4ae" stroke-width="1.5" marker-end="url(#a5)"/><g font-family="Exo 2" font-size="10" fill="#90a4ae" text-anchor="middle"><line x1="60" y1="16" x2="60" y2="24" stroke="#90a4ae"/><text x="60" y="35">…</text><line x1="120" y1="16" x2="120" y2="24" stroke="#90a4ae"/><text x="120" y="35">…</text><line x1="180" y1="16" x2="180" y2="24" stroke="#90a4ae"/><text x="180" y="35">…</text><line x1="240" y1="16" x2="240" y2="24" stroke="#90a4ae"/><text x="240" y="35">…</text><line x1="300" y1="16" x2="300" y2="24" stroke="#90a4ae"/><text x="300" y="35">…</text></g></svg></div>
-      </div>
-      <button class="chk-btn" onclick="verificar(5,'(-2,3]')">▶ VERIFICAR RESPUESTA</button>
-      <div class="fb" id="fb5"></div>
-    </div>
-  </div>
-
-  <!-- EJ 6 -->
-  <div class="ej e6" id="ej6">
-    <div class="ej-hdr">
-      <div class="ej-num">6</div>
-      <div class="ej-inf">
-        <div class="ej-tit">EJERCICIO 06 — Desafío con fracciones</div>
-        <div class="ej-sub">Usa el m.c.m. para eliminar denominadores</div>
-      </div>
-      <div class="ej-badge">🔥 DESAFÍO</div>
-      <div class="done-ico">✅</div>
-    </div>
-    <div class="ej-body">
-      <div class="enun"><span class="enun-tag">RESOLVER:</span><span class="enun-formula">\( \dfrac{x+3}{2} - 1 > \dfrac{2x-1}{3} \)</span></div>
-      <div class="pasos">
-        <div class="paso-row"><div class="paso-n">P1</div><div class="campo-tap" onclick="abrirTeclado(this,'dev')"><span class="ph">m.c.m.(2,3)=6 · multiplicar todo por 6…</span></div></div>
-        <div class="paso-row"><div class="paso-n">P2</div><div class="campo-tap" onclick="abrirTeclado(this,'dev')"><span class="ph">Expandir y simplificar…</span></div></div>
-        <div class="paso-row"><div class="paso-n">P3</div><div class="campo-tap" onclick="abrirTeclado(this,'dev')"><span class="ph">Agrupar términos con x…</span></div></div>
-        <div class="paso-row"><div class="paso-n">P4</div><div class="campo-tap" onclick="abrirTeclado(this,'dev')"><span class="ph">Despejar x…</span></div></div>
-      </div>
-      <div class="res-sec">
-        <span class="res-lbl">SOLUCIÓN: \( x \in \)</span>
-        <div class="res-campo" id="r6" onclick="abrirTeclado(this,'sol')"><span class="ph">Toca aquí…</span></div>
-        <div class="recta-sec"><div class="recta-lbl">// RECTA NUMÉRICA</div><svg class="recta-svg" id="sv6" viewBox="0 0 360 40"><defs><marker id="a6" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#90a4ae"/></marker></defs><line x1="10" y1="20" x2="348" y2="20" stroke="#90a4ae" stroke-width="1.5" marker-end="url(#a6)"/><g font-family="Exo 2" font-size="10" fill="#90a4ae" text-anchor="middle"><line x1="60" y1="16" x2="60" y2="24" stroke="#90a4ae"/><text x="60" y="35">…</text><line x1="120" y1="16" x2="120" y2="24" stroke="#90a4ae"/><text x="120" y="35">…</text><line x1="180" y1="16" x2="180" y2="24" stroke="#90a4ae"/><text x="180" y="35">…</text><line x1="240" y1="16" x2="240" y2="24" stroke="#90a4ae"/><text x="240" y="35">…</text><line x1="300" y1="16" x2="300" y2="24" stroke="#90a4ae"/><text x="300" y="35">…</text></g></svg></div>
-      </div>
-      <button class="chk-btn" onclick="verificar(6,'(-inf,5)')">▶ VERIFICAR RESPUESTA</button>
-      <div class="fb" id="fb6"></div>
-    </div>
-  </div>
-
-  <!-- Score -->
+    <!-- Score -->
   <div class="score" id="score">
     <div class="score-tit">✦ MISIÓN COMPLETADA ✦</div>
     <div class="score-grid">
@@ -906,27 +716,9 @@ function terminar() {
   setTimeout(() => p.scrollIntoView({behavior:'smooth', block:'center'}), 100);
 }
 
-// ── Animación de rectas numéricas ────────────────────
-const datosRecta = {
-  1: {tipo:'der',  v1:5,  ab1:true},                          // (5,+∞)
-  2: {tipo:'izq',  v1:-5, ab1:false},                         // (-∞,-5]
-  3: {tipo:'izq',  v1:4,  ab1:false},                         // (-∞,4]
-  4: {tipo:'izq',  v1:10, ab1:true},                          // (-∞,10)
-  5: {tipo:'entre',v1:-2, ab1:true, v2:3, ab2:false},         // (-2,3]
-  6: {tipo:'izq',  v1:5,  ab1:true},                          // (-∞,5)
-};
-
-// Map a real value to SVG x coordinate
-// SVG viewBox 0 0 360 40, axis from x=10 to x=348
-// We use a fixed scale: each exercise defines its own range
-const rangos = {
-  1: {min:-2,  max:14},
-  2: {min:-12, max:2},
-  3: {min:-2,  max:10},
-  4: {min:0,   max:18},
-  5: {min:-6,  max:7},
-  6: {min:-2,  max:12},
-};
+// ── datosRecta y rangos se asignan dinámicamente al generar ejercicios ──
+let datosRecta = {};
+let rangos = {};
 
 function valToX(v, rango) {
   const svgMin = 14, svgMax = 336;
@@ -1047,6 +839,258 @@ function ticksParaRango(min, max) {
   }
   return vals;
 }
+
+
+// ════════════════════════════════════════════════════
+// BANCO DE EJERCICIOS — 6 niveles × 5 ejercicios = 30
+// ════════════════════════════════════════════════════
+const banco = {
+
+  // NIVEL 1 — Básico: despeje directo
+  1: [
+    { tit:'Caso directo', sub:'Suma o resta · sin inversión',
+      badge:'⭐ BÁSICO', latex:'3x - 4 > 11',
+      pasos:['Sumar 4 a ambos miembros…','Dividir entre 3…','Resultado final…'],
+      resp:'(5,+inf)', recta:{tipo:'der',v1:5,ab1:true}, rango:{min:-2,max:14} },
+    { tit:'Caso directo', sub:'Suma o resta · sin inversión',
+      badge:'⭐ BÁSICO', latex:'2x + 3 < 11',
+      pasos:['Restar 3 a ambos miembros…','Dividir entre 2…','Resultado final…'],
+      resp:'(-inf,4)', recta:{tipo:'izq',v1:4,ab1:true}, rango:{min:-2,max:12} },
+    { tit:'Caso directo', sub:'Suma o resta · sin inversión',
+      badge:'⭐ BÁSICO', latex:'x - 5 \\geq 2',
+      pasos:['Sumar 5 a ambos miembros…','Resultado final…','Escribir en notación de intervalo…'],
+      resp:'[7,+inf)', recta:{tipo:'der',v1:7,ab1:false}, rango:{min:0,max:15} },
+    { tit:'Caso directo', sub:'Suma o resta · sin inversión',
+      badge:'⭐ BÁSICO', latex:'4x \\leq 20',
+      pasos:['Dividir entre 4 ambos miembros…','Resultado final…','Notación de intervalo…'],
+      resp:'(-inf,5]', recta:{tipo:'izq',v1:5,ab1:false}, rango:{min:-2,max:12} },
+    { tit:'Caso directo', sub:'Suma o resta · sin inversión',
+      badge:'⭐ BÁSICO', latex:'x + 7 > 3',
+      pasos:['Restar 7 a ambos miembros…','Resultado final…','Notación de intervalo…'],
+      resp:'(-4,+inf)', recta:{tipo:'der',v1:-4,ab1:true}, rango:{min:-10,max:4} },
+  ],
+
+  // NIVEL 2 — Medio: términos en ambos miembros
+  2: [
+    { tit:'Términos en ambos miembros', sub:'Agrupar x · constantes al otro lado',
+      badge:'⭐⭐ MEDIO', latex:'5x + 2 \\leq 3x - 8',
+      pasos:['Pasar 3x a la izquierda…','Simplificar…','Despejar x…'],
+      resp:'(-inf,-5]', recta:{tipo:'izq',v1:-5,ab1:false}, rango:{min:-12,max:2} },
+    { tit:'Términos en ambos miembros', sub:'Agrupar x · constantes al otro lado',
+      badge:'⭐⭐ MEDIO', latex:'7x - 3 > 4x + 9',
+      pasos:['Pasar 4x a la izquierda…','Simplificar…','Despejar x…'],
+      resp:'(4,+inf)', recta:{tipo:'der',v1:4,ab1:true}, rango:{min:-2,max:12} },
+    { tit:'Términos en ambos miembros', sub:'Agrupar x · constantes al otro lado',
+      badge:'⭐⭐ MEDIO', latex:'2x + 5 \\geq 5x - 4',
+      pasos:['Pasar 5x a la izquierda…','Simplificar…','Despejar x…'],
+      resp:'(-inf,3]', recta:{tipo:'izq',v1:3,ab1:false}, rango:{min:-2,max:10} },
+    { tit:'Términos en ambos miembros', sub:'Agrupar x · constantes al otro lado',
+      badge:'⭐⭐ MEDIO', latex:'6x - 1 < 2x + 7',
+      pasos:['Pasar 2x a la izquierda…','Simplificar…','Despejar x…'],
+      resp:'(-inf,2)', recta:{tipo:'izq',v1:2,ab1:true}, rango:{min:-4,max:8} },
+    { tit:'Términos en ambos miembros', sub:'Agrupar x · constantes al otro lado',
+      badge:'⭐⭐ MEDIO', latex:'3x + 10 \\leq 7x - 2',
+      pasos:['Pasar 7x a la izquierda…','Simplificar…','Despejar x…'],
+      resp:'[3,+inf)', recta:{tipo:'der',v1:3,ab1:false}, rango:{min:-2,max:10} },
+  ],
+
+  // NIVEL 3 — Medio: coeficiente negativo
+  3: [
+    { tit:'Coeficiente negativo', sub:'⚠ Invertir el signo al dividir entre negativo',
+      badge:'⭐⭐ MEDIO', latex:'-4x + 6 \\geq -10',
+      pasos:['Restar 6 a ambos miembros…','Dividir entre −4 (¡invertir signo!)…','Resultado final…'],
+      resp:'(-inf,4]', recta:{tipo:'izq',v1:4,ab1:false}, rango:{min:-2,max:10} },
+    { tit:'Coeficiente negativo', sub:'⚠ Invertir el signo al dividir entre negativo',
+      badge:'⭐⭐ MEDIO', latex:'-3x + 9 > 0',
+      pasos:['Restar 9 a ambos miembros…','Dividir entre −3 (¡invertir signo!)…','Resultado final…'],
+      resp:'(-inf,3)', recta:{tipo:'izq',v1:3,ab1:true}, rango:{min:-2,max:10} },
+    { tit:'Coeficiente negativo', sub:'⚠ Invertir el signo al dividir entre negativo',
+      badge:'⭐⭐ MEDIO', latex:'-2x \\leq 8',
+      pasos:['Dividir entre −2 (¡invertir signo!)…','Resultado final…','Notación de intervalo…'],
+      resp:'[-4,+inf)', recta:{tipo:'der',v1:-4,ab1:false}, rango:{min:-10,max:4} },
+    { tit:'Coeficiente negativo', sub:'⚠ Invertir el signo al dividir entre negativo',
+      badge:'⭐⭐ MEDIO', latex:'-5x + 2 < -13',
+      pasos:['Restar 2 a ambos miembros…','Dividir entre −5 (¡invertir signo!)…','Resultado final…'],
+      resp:'(3,+inf)', recta:{tipo:'der',v1:3,ab1:true}, rango:{min:-2,max:10} },
+    { tit:'Coeficiente negativo', sub:'⚠ Invertir el signo al dividir entre negativo',
+      badge:'⭐⭐ MEDIO', latex:'-x + 4 \\geq 10',
+      pasos:['Restar 4 a ambos miembros…','Dividir entre −1 (¡invertir signo!)…','Resultado final…'],
+      resp:'(-inf,-6]', recta:{tipo:'izq',v1:-6,ab1:false}, rango:{min:-12,max:2} },
+  ],
+
+  // NIVEL 4 — Avanzado: con paréntesis
+  4: [
+    { tit:'Con paréntesis', sub:'Distribuye · simplifica · agrupa',
+      badge:'⭐⭐⭐ AVANZADO', latex:'3(x-2) + 1 < 2(x+4) - 3',
+      pasos:['Expandir paréntesis…','Simplificar cada miembro…','Agrupar términos con x…','Despejar x…'],
+      resp:'(-inf,10)', recta:{tipo:'izq',v1:10,ab1:true}, rango:{min:0,max:18} },
+    { tit:'Con paréntesis', sub:'Distribuye · simplifica · agrupa',
+      badge:'⭐⭐⭐ AVANZADO', latex:'2(x+5) > 3(x-1)',
+      pasos:['Expandir paréntesis…','Simplificar cada miembro…','Agrupar términos con x…','Despejar x…'],
+      resp:'(-inf,13)', recta:{tipo:'izq',v1:13,ab1:true}, rango:{min:0,max:20} },
+    { tit:'Con paréntesis', sub:'Distribuye · simplifica · agrupa',
+      badge:'⭐⭐⭐ AVANZADO', latex:'4(x-1) \\leq 2(x+3) + 2',
+      pasos:['Expandir paréntesis…','Simplificar cada miembro…','Agrupar términos con x…','Despejar x…'],
+      resp:'(-inf,6]', recta:{tipo:'izq',v1:6,ab1:false}, rango:{min:-2,max:14} },
+    { tit:'Con paréntesis', sub:'Distribuye · simplifica · agrupa',
+      badge:'⭐⭐⭐ AVANZADO', latex:'5(x+2) - 3 > 2(x-1) + 10',
+      pasos:['Expandir paréntesis…','Simplificar cada miembro…','Agrupar términos con x…','Despejar x…'],
+      resp:'(1,+inf)', recta:{tipo:'der',v1:1,ab1:true}, rango:{min:-4,max:8} },
+    { tit:'Con paréntesis', sub:'Distribuye · simplifica · agrupa',
+      badge:'⭐⭐⭐ AVANZADO', latex:'3(2x-1) \\geq 2(x+4) + 1',
+      pasos:['Expandir paréntesis…','Simplificar cada miembro…','Agrupar términos con x…','Despejar x…'],
+      resp:'[3,+inf)', recta:{tipo:'der',v1:3,ab1:false}, rango:{min:-2,max:10} },
+  ],
+
+  // NIVEL 5 — Avanzado: doble desigualdad
+  5: [
+    { tit:'Doble desigualdad', sub:'Opera simultáneamente en los tres miembros',
+      badge:'⭐⭐⭐ AVANZADO', latex:'-5 < 3x + 1 \\leq 10',
+      pasos:['Restar 1 en los tres miembros…','Dividir entre 3 los tres miembros…','Interpretar el intervalo acotado…'],
+      resp:'(-2,3]', recta:{tipo:'entre',v1:-2,ab1:true,v2:3,ab2:false}, rango:{min:-6,max:7} },
+    { tit:'Doble desigualdad', sub:'Opera simultáneamente en los tres miembros',
+      badge:'⭐⭐⭐ AVANZADO', latex:'-1 \\leq 2x + 3 < 9',
+      pasos:['Restar 3 en los tres miembros…','Dividir entre 2 los tres miembros…','Interpretar el intervalo acotado…'],
+      resp:'[-2,3)', recta:{tipo:'entre',v1:-2,ab1:false,v2:3,ab2:true}, rango:{min:-6,max:7} },
+    { tit:'Doble desigualdad', sub:'Opera simultáneamente en los tres miembros',
+      badge:'⭐⭐⭐ AVANZADO', latex:'0 < 4x - 4 \\leq 12',
+      pasos:['Sumar 4 en los tres miembros…','Dividir entre 4 los tres miembros…','Interpretar el intervalo acotado…'],
+      resp:'(1,4]', recta:{tipo:'entre',v1:1,ab1:true,v2:4,ab2:false}, rango:{min:-2,max:8} },
+    { tit:'Doble desigualdad', sub:'Opera simultáneamente en los tres miembros',
+      badge:'⭐⭐⭐ AVANZADO', latex:'-4 \\leq 3x + 2 < 11',
+      pasos:['Restar 2 en los tres miembros…','Dividir entre 3 los tres miembros…','Interpretar el intervalo acotado…'],
+      resp:'[-2,3)', recta:{tipo:'entre',v1:-2,ab1:false,v2:3,ab2:true}, rango:{min:-6,max:7} },
+    { tit:'Doble desigualdad', sub:'Opera simultáneamente en los tres miembros',
+      badge:'⭐⭐⭐ AVANZADO', latex:'2 < 2x - 2 \\leq 8',
+      pasos:['Sumar 2 en los tres miembros…','Dividir entre 2 los tres miembros…','Interpretar el intervalo acotado…'],
+      resp:'(2,5]', recta:{tipo:'entre',v1:2,ab1:true,v2:5,ab2:false}, rango:{min:-2,max:9} },
+  ],
+
+  // NIVEL 6 — Desafío: fracciones
+  6: [
+    { tit:'Desafío con fracciones', sub:'Usa el m.c.m. para eliminar denominadores',
+      badge:'🔥 DESAFÍO', latex:'\\dfrac{x+3}{2} - 1 > \\dfrac{2x-1}{3}',
+      pasos:['m.c.m.(2,3)=6 · multiplicar todo por 6…','Expandir y simplificar…','Agrupar términos con x…','Despejar x…'],
+      resp:'(-inf,5)', recta:{tipo:'izq',v1:5,ab1:true}, rango:{min:-2,max:12} },
+    { tit:'Desafío con fracciones', sub:'Usa el m.c.m. para eliminar denominadores',
+      badge:'🔥 DESAFÍO', latex:'\\dfrac{x}{2} + 1 \\leq \\dfrac{x}{3} + 3',
+      pasos:['m.c.m.(2,3)=6 · multiplicar todo por 6…','Expandir y simplificar…','Agrupar términos con x…','Despejar x…'],
+      resp:'(-inf,12]', recta:{tipo:'izq',v1:12,ab1:false}, rango:{min:0,max:20} },
+    { tit:'Desafío con fracciones', sub:'Usa el m.c.m. para eliminar denominadores',
+      badge:'🔥 DESAFÍO', latex:'\\dfrac{2x-1}{3} > \\dfrac{x+2}{4}',
+      pasos:['m.c.m.(3,4)=12 · multiplicar todo por 12…','Expandir y simplificar…','Agrupar términos con x…','Despejar x…'],
+      resp:'(11,+inf)', recta:{tipo:'der',v1:11,ab1:true}, rango:{min:0,max:20} },
+    { tit:'Desafío con fracciones', sub:'Usa el m.c.m. para eliminar denominadores',
+      badge:'🔥 DESAFÍO', latex:'\\dfrac{x+1}{4} \\geq \\dfrac{x-1}{2} - 1',
+      pasos:['m.c.m.(4,2)=4 · multiplicar todo por 4…','Expandir y simplificar…','Agrupar términos con x…','Despejar x…'],
+      resp:'(-inf,7]', recta:{tipo:'izq',v1:7,ab1:false}, rango:{min:-2,max:14} },
+    { tit:'Desafío con fracciones', sub:'Usa el m.c.m. para eliminar denominadores',
+      badge:'🔥 DESAFÍO', latex:'\\dfrac{3x}{4} - 2 < \\dfrac{x}{2} + 1',
+      pasos:['m.c.m.(4,2)=4 · multiplicar todo por 4…','Expandir y simplificar…','Agrupar términos con x…','Despejar x…'],
+      resp:'(-inf,12)', recta:{tipo:'izq',v1:12,ab1:true}, rango:{min:0,max:20} },
+  ],
+};
+
+// ── Colores por nivel ─────────────────────────────────
+const coloresEj = {
+  1: {hdr:'linear-gradient(135deg,#0d2b5e,#1565c0)', numBg:'rgba(30,136,229,.3)', numColor:'#90caf9', numBorder:'rgba(144,202,249,.5)', enunBg:'var(--azulL)', enunBorder:'var(--azul)', badgeBg:'rgba(30,136,229,.25)', badgeColor:'#90caf9', badgeBorder:'rgba(144,202,249,.4)', pasoNBg:'var(--azulL)', pasoNColor:'var(--azul)'},
+  2: {hdr:'linear-gradient(135deg,#0a3d2e,#1b5e20)', numBg:'rgba(46,125,50,.3)',  numColor:'#a5d6a7', numBorder:'rgba(165,214,167,.5)', enunBg:'var(--verdeL)', enunBorder:'var(--verde)', badgeBg:'rgba(46,125,50,.25)', badgeColor:'#a5d6a7', badgeBorder:'rgba(165,214,167,.4)', pasoNBg:'var(--verdeL)', pasoNColor:'var(--verde)'},
+  3: {hdr:'linear-gradient(135deg,#4a1500,#e65100)', numBg:'rgba(230,81,0,.3)',   numColor:'#ffcc80', numBorder:'rgba(255,204,128,.5)', enunBg:'var(--naranjaL)', enunBorder:'var(--naranja)', badgeBg:'rgba(230,81,0,.25)', badgeColor:'#ffcc80', badgeBorder:'rgba(255,204,128,.4)', pasoNBg:'var(--naranjaL)', pasoNColor:'var(--naranja)'},
+  4: {hdr:'linear-gradient(135deg,#2a0a40,#6a1b9a)', numBg:'rgba(106,27,154,.3)',numColor:'#ce93d8', numBorder:'rgba(206,147,216,.5)', enunBg:'#f3e5f5', enunBorder:'#6a1b9a', badgeBg:'rgba(106,27,154,.25)', badgeColor:'#ce93d8', badgeBorder:'rgba(206,147,216,.4)', pasoNBg:'#f3e5f5', pasoNColor:'#6a1b9a'},
+  5: {hdr:'linear-gradient(135deg,#4a0000,#c62828)', numBg:'rgba(198,40,40,.3)',  numColor:'#ef9a9a', numBorder:'rgba(239,154,154,.5)', enunBg:'var(--rojoL)', enunBorder:'var(--rojo)', badgeBg:'rgba(198,40,40,.25)', badgeColor:'#ef9a9a', badgeBorder:'rgba(239,154,154,.4)', pasoNBg:'var(--rojoL)', pasoNColor:'var(--rojo)'},
+  6: {hdr:'linear-gradient(135deg,#1a2530,#37474f)', numBg:'rgba(55,71,79,.3)',   numColor:'#b0bec5', numBorder:'rgba(176,190,197,.5)', enunBg:'var(--grisL)', enunBorder:'var(--gris)', badgeBg:'rgba(55,71,79,.25)', badgeColor:'#b0bec5', badgeBorder:'rgba(176,190,197,.4)', pasoNBg:'var(--grisL)', pasoNColor:'var(--gris)'},
+};
+
+// ── Selección aleatoria y generación ─────────────────
+const seleccionados = {}; // guardamos los ejercicios seleccionados
+
+function elegirEjercicios() {
+  // Elegir 1 ejercicio aleatorio de cada nivel
+  for (let niv = 1; niv <= 6; niv++) {
+    const pool = banco[niv];
+    seleccionados[niv] = pool[Math.floor(Math.random() * pool.length)];
+  }
+}
+
+function generarSVG(n) {
+  return `<svg class="recta-svg" id="sv${n}" viewBox="0 0 360 40">
+    <defs><marker id="a${n}" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
+      <path d="M0,0 L6,3 L0,6 Z" fill="#90a4ae"/></marker></defs>
+    <line x1="10" y1="20" x2="348" y2="20" stroke="#90a4ae" stroke-width="1.5" marker-end="url(#a${n})"/>
+    <g font-family="Exo 2, sans-serif" font-size="10" fill="#90a4ae" text-anchor="middle">
+      <line x1="72" y1="16" x2="72" y2="24" stroke="#90a4ae"/><text x="72" y="35">…</text>
+      <line x1="132" y1="16" x2="132" y2="24" stroke="#90a4ae"/><text x="132" y="35">…</text>
+      <line x1="192" y1="16" x2="192" y2="24" stroke="#90a4ae"/><text x="192" y="35">…</text>
+      <line x1="252" y1="16" x2="252" y2="24" stroke="#90a4ae"/><text x="252" y="35">…</text>
+      <line x1="312" y1="16" x2="312" y2="24" stroke="#90a4ae"/><text x="312" y="35">…</text>
+    </g></svg>`;
+}
+
+function generarPasos(ej, n) {
+  return ej.pasos.map((ph, i) => `
+    <div class="paso-row">
+      <div class="paso-n" style="background:${coloresEj[n].pasoNBg};color:${coloresEj[n].pasoNColor}">P${i+1}</div>
+      <div class="campo-tap" onclick="abrirTeclado(this,'dev')"><span class="ph">${ph}</span></div>
+    </div>`).join('');
+}
+
+function renderizarEjercicios() {
+  const cont = document.getElementById('ejercicios-container');
+  cont.innerHTML = '';
+
+  for (let n = 1; n <= 6; n++) {
+    const ej = seleccionados[n];
+    const col = coloresEj[n];
+    const num = n < 10 ? '0' + n : n;
+
+    const html = `
+    <div class="ej e${n}" id="ej${n}" style="--ej-hdr:${col.hdr}">
+      <div class="ej-hdr" style="background:${col.hdr}">
+        <div class="ej-num" style="background:${col.numBg};color:${col.numColor};border:1px solid ${col.numBorder}">${n}</div>
+        <div class="ej-inf">
+          <div class="ej-tit">EJERCICIO ${num} — ${ej.tit}</div>
+          <div class="ej-sub">${ej.sub}</div>
+        </div>
+        <div class="ej-badge" style="background:${col.badgeBg};color:${col.badgeColor};border:1px solid ${col.badgeBorder}">${ej.badge}</div>
+        <div class="done-ico">✅</div>
+      </div>
+      <div class="ej-body">
+        <div class="enun" style="background:${col.enunBg};border-left:3px solid ${col.enunBorder}">
+          <span class="enun-tag">RESOLVER:</span>
+          <span class="enun-formula">\\(${ej.latex}\\)</span>
+        </div>
+        <div class="pasos">${generarPasos(ej, n)}</div>
+        <div class="res-sec">
+          <span class="res-lbl">SOLUCIÓN: \\( x \\in \\)</span>
+          <div class="res-campo" id="r${n}" onclick="abrirTeclado(this,'sol')"><span class="ph">Toca aquí…</span></div>
+          <div class="recta-sec">
+            <div class="recta-lbl">// RECTA NUMÉRICA</div>
+            ${generarSVG(n)}
+          </div>
+        </div>
+        <button class="chk-btn" onclick="verificar(${n},'${ej.resp}')">▶ VERIFICAR RESPUESTA</button>
+        <div class="fb" id="fb${n}"></div>
+      </div>
+    </div>`;
+
+    cont.insertAdjacentHTML('beforeend', html);
+
+    // Update datosRecta and rangos
+    datosRecta[n] = ej.recta;
+    rangos[n] = ej.rango;
+  }
+
+  // Re-render MathJax for the new content
+  if (window.MathJax) {
+    MathJax.typesetPromise([cont]).catch(err => console.log(err));
+  }
+}
+
+// ── Arrancar al cargar la página ─────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  elegirEjercicios();
+  renderizarEjercicios();
+});
 
 </script>
 </body>
